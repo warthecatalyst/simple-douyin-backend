@@ -1,9 +1,10 @@
 package controller
 
 import (
+	"context"
 	"fmt"
 	"github.com/YOJIA-yukino/simple-douyin-backend/api"
-	"github.com/gin-gonic/gin"
+	"github.com/cloudwego/hertz/pkg/app"
 	"net/http"
 	"strconv"
 	"sync/atomic"
@@ -20,10 +21,10 @@ type ChatResponse struct {
 }
 
 // MessageAction no practical effect, just check if token is valid
-func MessageAction(c *gin.Context) {
-	token := c.Query("token")
-	toUserId := c.Query("to_user_id")
-	content := c.Query("content")
+func MessageAction(c context.Context, ctx *app.RequestContext) {
+	token := ctx.Query("token")
+	toUserId := ctx.Query("to_user_id")
+	content := ctx.Query("content")
 
 	if user, exist := usersLoginInfo[token]; exist {
 		userIdB, _ := strconv.Atoi(toUserId)
@@ -41,24 +42,24 @@ func MessageAction(c *gin.Context) {
 		} else {
 			tempChat[chatKey] = []api.Message{curMessage}
 		}
-		c.JSON(http.StatusOK, api.Response{StatusCode: 0})
+		ctx.JSON(http.StatusOK, api.Response{StatusCode: 0})
 	} else {
-		c.JSON(http.StatusOK, api.Response{StatusCode: 1, StatusMsg: "User doesn't exist"})
+		ctx.JSON(http.StatusOK, api.Response{StatusCode: 1, StatusMsg: "User doesn't exist"})
 	}
 }
 
 // MessageChat all users have same follow list
-func MessageChat(c *gin.Context) {
-	token := c.Query("token")
-	toUserId := c.Query("to_user_id")
+func MessageChat(c context.Context, ctx *app.RequestContext) {
+	token := ctx.Query("token")
+	toUserId := ctx.Query("to_user_id")
 
 	if user, exist := usersLoginInfo[token]; exist {
 		userIdB, _ := strconv.Atoi(toUserId)
 		chatKey := genChatKey(user.Id, int64(userIdB))
 
-		c.JSON(http.StatusOK, ChatResponse{Response: api.Response{StatusCode: 0}, MessageList: tempChat[chatKey]})
+		ctx.JSON(http.StatusOK, ChatResponse{Response: api.Response{StatusCode: 0}, MessageList: tempChat[chatKey]})
 	} else {
-		c.JSON(http.StatusOK, api.Response{StatusCode: 1, StatusMsg: "User doesn't exist"})
+		ctx.JSON(http.StatusOK, api.Response{StatusCode: 1, StatusMsg: "User doesn't exist"})
 	}
 }
 

@@ -1,9 +1,10 @@
 package controller
 
 import (
+	"context"
 	"fmt"
 	"github.com/YOJIA-yukino/simple-douyin-backend/api"
-	"github.com/gin-gonic/gin"
+	"github.com/cloudwego/hertz/pkg/app"
 	"net/http"
 	"path/filepath"
 )
@@ -14,17 +15,17 @@ type VideoListResponse struct {
 }
 
 // Publish check token then save upload file to public directory
-func Publish(c *gin.Context) {
-	token := c.PostForm("token")
+func Publish(c context.Context, ctx *app.RequestContext) {
+	token := ctx.PostForm("token")
 
 	if _, exist := usersLoginInfo[token]; !exist {
-		c.JSON(http.StatusOK, api.Response{StatusCode: 1, StatusMsg: "User doesn't exist"})
+		ctx.JSON(http.StatusOK, api.Response{StatusCode: 1, StatusMsg: "User doesn't exist"})
 		return
 	}
 
-	data, err := c.FormFile("data")
+	data, err := ctx.FormFile("data")
 	if err != nil {
-		c.JSON(http.StatusOK, api.Response{
+		ctx.JSON(http.StatusOK, api.Response{
 			StatusCode: 1,
 			StatusMsg:  err.Error(),
 		})
@@ -35,23 +36,23 @@ func Publish(c *gin.Context) {
 	user := usersLoginInfo[token]
 	finalName := fmt.Sprintf("%d_%s", user.Id, filename)
 	saveFile := filepath.Join("./public/", finalName)
-	if err := c.SaveUploadedFile(data, saveFile); err != nil {
-		c.JSON(http.StatusOK, api.Response{
+	if err := ctx.SaveUploadedFile(data, saveFile); err != nil {
+		ctx.JSON(http.StatusOK, api.Response{
 			StatusCode: 1,
 			StatusMsg:  err.Error(),
 		})
 		return
 	}
 
-	c.JSON(http.StatusOK, api.Response{
+	ctx.JSON(http.StatusOK, api.Response{
 		StatusCode: 0,
 		StatusMsg:  finalName + " uploaded successfully",
 	})
 }
 
 // PublishList all users have same publish video list
-func PublishList(c *gin.Context) {
-	c.JSON(http.StatusOK, VideoListResponse{
+func PublishList(c context.Context, ctx *app.RequestContext) {
+	ctx.JSON(http.StatusOK, VideoListResponse{
 		Response: api.Response{
 			StatusCode: 0,
 		},

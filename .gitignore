@@ -24,3 +24,6 @@ go.work
 .vscode
 
 # More for security concerns
+configs/config.ini
+userdata
+logdata

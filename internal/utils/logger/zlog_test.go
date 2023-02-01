@@ -1,6 +1,7 @@
 package logger
 
 import (
+	initialization "github.com/YOJIA-yukino/simple-douyin-backend/init"
 	"github.com/rs/zerolog/log"
 	"testing"
 )
@@ -15,4 +16,13 @@ func TestZLog(t *testing.T) {
 	log.Debug().
 		Str("Name", "Tom").
 		Send()
+}
+
+func TestWriteToFileLog(t *testing.T) {
+	logConf := initialization.LogConfig{
+		LogFileWritten: true,
+		LogFilePath:    "testFile.txt",
+	}
+	InitFileLogger(logConf)
+	FileLogger.Print("Hello world")
 }

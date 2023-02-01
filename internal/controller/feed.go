@@ -1,8 +1,9 @@
 package controller
 
 import (
+	"context"
 	"github.com/YOJIA-yukino/simple-douyin-backend/api"
-	"github.com/gin-gonic/gin"
+	"github.com/cloudwego/hertz/pkg/app"
 	"net/http"
 	"time"
 )
@@ -14,8 +15,8 @@ type FeedResponse struct {
 }
 
 // Feed same demo video list for every request
-func Feed(c *gin.Context) {
-	c.JSON(http.StatusOK, FeedResponse{
+func Feed(c context.Context, ctx *app.RequestContext) {
+	ctx.JSON(http.StatusOK, FeedResponse{
 		Response:  api.Response{StatusCode: 0},
 		VideoList: DemoVideos,
 		NextTime:  time.Now().Unix(),

@@ -1,8 +1,9 @@
 package controller
 
 import (
+	"context"
 	"github.com/YOJIA-yukino/simple-douyin-backend/api"
-	"github.com/gin-gonic/gin"
+	"github.com/cloudwego/hertz/pkg/app"
 	"net/http"
 )
 
@@ -17,14 +18,14 @@ type CommentActionResponse struct {
 }
 
 // CommentAction no practical effect, just check if token is valid
-func CommentAction(c *gin.Context) {
-	token := c.Query("token")
-	actionType := c.Query("action_type")
+func CommentAction(c context.Context, ctx *app.RequestContext) {
+	token := ctx.Query("token")
+	actionType := ctx.Query("action_type")
 
 	if user, exist := usersLoginInfo[token]; exist {
 		if actionType == "1" {
-			text := c.Query("comment_text")
-			c.JSON(http.StatusOK, CommentActionResponse{Response: api.Response{StatusCode: 0},
+			text := ctx.Query("comment_text")
+			ctx.JSON(http.StatusOK, CommentActionResponse{Response: api.Response{StatusCode: 0},
 				Comment: api.Comment{
 					Id:         1,
 					User:       user,
@@ -33,15 +34,15 @@ func CommentAction(c *gin.Context) {
 				}})
 			return
 		}
-		c.JSON(http.StatusOK, api.Response{StatusCode: 0})
+		ctx.JSON(http.StatusOK, api.Response{StatusCode: 0})
 	} else {
-		c.JSON(http.StatusOK, api.Response{StatusCode: 1, StatusMsg: "User doesn't exist"})
+		ctx.JSON(http.StatusOK, api.Response{StatusCode: 1, StatusMsg: "User doesn't exist"})
 	}
 }
 
 // CommentList all videos have same demo comment list
-func CommentList(c *gin.Context) {
-	c.JSON(http.StatusOK, CommentListResponse{
+func CommentList(c context.Context, ctx *app.RequestContext) {
+	ctx.JSON(http.StatusOK, CommentListResponse{
 		Response:    api.Response{StatusCode: 0},
 		CommentList: DemoComments,
 	})
