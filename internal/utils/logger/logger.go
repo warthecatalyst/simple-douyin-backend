@@ -2,35 +2,30 @@ package logger
 
 import (
 	initialization "github.com/YOJIA-yukino/simple-douyin-backend/init"
+	"github.com/YOJIA-yukino/simple-douyin-backend/internal/utils/files"
 	"github.com/rs/zerolog"
 	"os"
 )
 
-// FileLogger 写入文件的Logger
-var FileLogger zerolog.Logger
+// GlobalLogger 全局Logger
+var GlobalLogger zerolog.Logger
 
-// InitFileLogger 初始化文件Logger
-func InitFileLogger(config initialization.LogConfig) {
+// InitLogger 初始化GlobalLogger
+func InitLogger(config initialization.LogConfig) {
 	var err error
 	var file *os.File
 	if config.LogFileWritten {
-		if checkFileIsExist(config.LogFilePath) {
+		if exists, _ := files.PathExists(config.LogFilePath); exists {
 			file, err = os.OpenFile(config.LogFilePath, os.O_APPEND, 0666)
 		} else {
 			file, err = os.Create(config.LogFilePath)
 		}
+		if err != nil {
+			panic(err)
+		}
+		GlobalLogger = zerolog.New(file)
+	} else {
+		GlobalLogger = initialization.GetStdOutLogger()
 	}
-
-	if err != nil {
-		initialization.StdOutLogger.Panic().Caller().Err(err)
-	}
-
-	FileLogger = zerolog.New(file)
-}
-
-func checkFileIsExist(filename string) bool {
-	if _, err := os.Stat(filename); os.IsNotExist(err) {
-		return false
-	}
-	return true
+	GlobalLogger.Level(zerolog.InfoLevel)
 }

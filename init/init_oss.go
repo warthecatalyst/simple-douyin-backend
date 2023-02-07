@@ -11,11 +11,11 @@ var (
 func InitOSS() {
 	client, err := oss.New("https://"+OssConf.Url, OssConf.AccessKeyID, OssConf.AccessKeySecret)
 	if err != nil {
-		StdOutLogger.Panic().Caller().Str("OSS初始化client失败", err.Error())
+		stdOutLogger.Panic().Caller().Str("OSS初始化client失败", err.Error())
 	}
 	bucket, err = client.Bucket(OssConf.Bucket)
 	if err != nil {
-		StdOutLogger.Panic().Caller().Str("OSS初始化bucket失败", err.Error())
+		stdOutLogger.Panic().Caller().Str("OSS初始化bucket失败", err.Error())
 	}
 }
 

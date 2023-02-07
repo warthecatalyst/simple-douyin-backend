@@ -3,9 +3,9 @@ package jwt
 import (
 	"context"
 	"github.com/YOJIA-yukino/simple-douyin-backend/api"
-	initialization "github.com/YOJIA-yukino/simple-douyin-backend/init"
 	"github.com/YOJIA-yukino/simple-douyin-backend/internal/model"
 	"github.com/YOJIA-yukino/simple-douyin-backend/internal/service"
+	"github.com/YOJIA-yukino/simple-douyin-backend/internal/utils/logger"
 	"github.com/cloudwego/hertz/pkg/app"
 	"github.com/cloudwego/hertz/pkg/common/hlog"
 	"github.com/cloudwego/hertz/pkg/common/utils"
@@ -61,16 +61,14 @@ func InitJwt() {
 		},
 		Authenticator: func(ctx context.Context, c *app.RequestContext) (interface{}, error) {
 			var userStruct UserStruct
-
 			if err := c.BindAndValidate(&userStruct); err != nil {
 				return nil, err
 			}
-
 			userInfo, err := service.GetUserServiceInstance().CheckUserInfo(userStruct.Username, userStruct.Password)
+
 			if err != nil {
 				return nil, err
 			}
-
 			return userInfo, nil
 		},
 		IdentityKey: IdentityKey,
@@ -101,6 +99,6 @@ func InitJwt() {
 	})
 
 	if err != nil {
-		initialization.StdOutLogger.Error().Str("JWT初始化错误", err.Error())
+		logger.GlobalLogger.Error().Str("JWT初始化错误", err.Error())
 	}
 }

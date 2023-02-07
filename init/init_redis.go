@@ -17,7 +17,7 @@ func InitRDB() {
 
 	_, err := rdb.Ping().Result()
 	if err != nil {
-		StdOutLogger.Panic().Caller().Str("Redis启动失败", err.Error())
+		stdOutLogger.Panic().Caller().Str("Redis启动失败", err.Error())
 	}
 
 	return

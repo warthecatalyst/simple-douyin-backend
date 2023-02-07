@@ -14,8 +14,8 @@ const (
 	configFilePath = "./configs/config.ini"
 )
 
-// StdOutLogger 初始化标准输出的Logger
-var StdOutLogger = zerolog.New(os.Stdout)
+// stdOutLogger 初始化标准输出的Logger
+var stdOutLogger = zerolog.New(os.Stdout)
 
 type OssConfig struct {
 	Url             string
@@ -65,7 +65,7 @@ var (
 )
 
 func InitConfig() {
-	StdOutLogger.Print("in basic initialization")
+	stdOutLogger.Info().Msg("In initConfig")
 	f, err := ini.Load(configFilePath)
 	if err != nil {
 		log.Panic().Caller().Err(errors.New("配置文件初始化失败"))
@@ -141,4 +141,8 @@ var db *gorm.DB
 
 func GetDB() *gorm.DB {
 	return db
+}
+
+func GetStdOutLogger() zerolog.Logger {
+	return stdOutLogger
 }

@@ -23,6 +23,6 @@ func TestWriteToFileLog(t *testing.T) {
 		LogFileWritten: true,
 		LogFilePath:    "testFile.txt",
 	}
-	InitFileLogger(logConf)
-	FileLogger.Print("Hello world")
+	InitLogger(logConf)
+	GlobalLogger.Print("Hello world")
 }

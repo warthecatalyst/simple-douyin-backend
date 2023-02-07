@@ -2,11 +2,16 @@ package controller
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"github.com/YOJIA-yukino/simple-douyin-backend/api"
+	"github.com/YOJIA-yukino/simple-douyin-backend/internal/service"
+	"github.com/YOJIA-yukino/simple-douyin-backend/internal/utils/constants"
+	"github.com/YOJIA-yukino/simple-douyin-backend/internal/utils/jwt"
+	"github.com/YOJIA-yukino/simple-douyin-backend/internal/utils/logger"
 	"github.com/cloudwego/hertz/pkg/app"
-	"net/http"
-	"path/filepath"
+	"github.com/cloudwego/hertz/pkg/protocol/consts"
+	"strconv"
+	"time"
 )
 
 type VideoListResponse struct {
@@ -16,46 +21,82 @@ type VideoListResponse struct {
 
 // Publish check token then save upload file to public directory
 func Publish(c context.Context, ctx *app.RequestContext) {
-	token := ctx.PostForm("token")
-
-	if _, exist := usersLoginInfo[token]; !exist {
-		ctx.JSON(http.StatusOK, api.Response{StatusCode: 1, StatusMsg: "User doesn't exist"})
+	userId, err := jwt.GetUserId(c, ctx)
+	if err != nil {
+		logger.GlobalLogger.Printf("Time = %v,can't get user From token", time.Now())
+		if errors.Is(constants.InvalidTokenErr, err) {
+			ctx.JSON(consts.StatusOK, api.Response{
+				StatusCode: int32(api.TokenInvalidErr),
+				StatusMsg:  api.ErrorCodeToMsg[api.TokenInvalidErr],
+			})
+		} else {
+			ctx.JSON(consts.StatusOK, api.Response{
+				StatusCode: int32(api.InnerDataBaseErr),
+				StatusMsg:  api.ErrorCodeToMsg[api.InnerDataBaseErr],
+			})
+		}
 		return
 	}
 
+	logger.GlobalLogger.Printf("Time = %v,get User From loginUser = %v", time.Now(), userId)
 	data, err := ctx.FormFile("data")
 	if err != nil {
-		ctx.JSON(http.StatusOK, api.Response{
-			StatusCode: 1,
-			StatusMsg:  err.Error(),
+		logger.GlobalLogger.Printf("Time = %v,can't get Video Data from post", time.Now())
+		ctx.JSON(consts.StatusOK, api.Response{
+			StatusCode: int32(api.GetDataErr),
+			StatusMsg:  api.ErrorCodeToMsg[api.GetDataErr],
 		})
 		return
 	}
-
-	filename := filepath.Base(data.Filename)
-	user := usersLoginInfo[token]
-	finalName := fmt.Sprintf("%d_%s", user.Id, filename)
-	saveFile := filepath.Join("./public/", finalName)
-	if err := ctx.SaveUploadedFile(data, saveFile); err != nil {
-		ctx.JSON(http.StatusOK, api.Response{
-			StatusCode: 1,
-			StatusMsg:  err.Error(),
+	title := ctx.Query("title")
+	err = service.GetPublishServiceInstance().PublishInfo(data, userId, title)
+	if err != nil {
+		ctx.JSON(consts.StatusOK, api.Response{
+			StatusCode: int32(api.UploadFailErr),
+			StatusMsg:  api.ErrorCodeToMsg[api.UploadFailErr],
 		})
 		return
 	}
-
-	ctx.JSON(http.StatusOK, api.Response{
+	ctx.JSON(consts.StatusOK, api.Response{
 		StatusCode: 0,
-		StatusMsg:  finalName + " uploaded successfully",
 	})
 }
 
 // PublishList all users have same publish video list
 func PublishList(c context.Context, ctx *app.RequestContext) {
-	ctx.JSON(http.StatusOK, VideoListResponse{
+	loginUserId, err := jwt.GetUserId(c, ctx)
+	if err != nil {
+		logger.GlobalLogger.Printf("Time = %v,can't get user From token", time.Now())
+		if errors.Is(constants.InvalidTokenErr, err) {
+			ctx.JSON(consts.StatusOK, api.Response{
+				StatusCode: int32(api.TokenInvalidErr),
+				StatusMsg:  api.ErrorCodeToMsg[api.TokenInvalidErr],
+			})
+		} else {
+			ctx.JSON(consts.StatusOK, api.Response{
+				StatusCode: int32(api.InnerDataBaseErr),
+				StatusMsg:  api.ErrorCodeToMsg[api.InnerDataBaseErr],
+			})
+		}
+		return
+	}
+
+	userStr := ctx.Query("user_id")
+	userId, err := strconv.ParseInt(userStr, 10, 64)
+	logger.GlobalLogger.Printf("userId = %v", userId)
+	if err != nil {
+		ctx.JSON(consts.StatusOK, api.Response{
+			StatusCode: int32(api.InputFormatCheckErr),
+			StatusMsg:  api.ErrorCodeToMsg[api.InputFormatCheckErr],
+		})
+		return
+	}
+
+	videoList, err := service.GetPublishServiceInstance().PublishListInfo(userId, loginUserId)
+	ctx.JSON(consts.StatusOK, VideoListResponse{
 		Response: api.Response{
 			StatusCode: 0,
 		},
-		VideoList: DemoVideos,
+		VideoList: videoList,
 	})
 }

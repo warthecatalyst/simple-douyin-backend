@@ -57,3 +57,8 @@ type UserResponse struct {
 	Response
 	User User `json:"user"`
 }
+
+const (
+	FavoriteAction   = 1
+	UnFavoriteAction = 2
+)
