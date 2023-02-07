@@ -1,0 +1,36 @@
+[server]
+Port    = :8888
+
+[database]
+Dbtype     = mysql
+DbHost     = 127.0.0.1
+DbPort     = 3306
+DbUser     =
+DbPassWord =
+DbName     = dy_backend
+LogLevel   = info
+
+[redis]
+Host = 127.0.0.1
+Port = 6379
+
+[feed]
+ListLength = 30  # feed视频获取的视频列表长度
+
+[oss]
+Url             = oss-cn-xxx.aliyuncs.com
+Bucket          = tdouyinbuc
+BucketDirectory = douyin_test
+AccessKeyID     =
+AccessKeySecret =
+
+[video]
+SavePath = /tmp/test_video/  # 视频文件临时存放的路径，最后要带斜杠
+AllowedExts = .mp4,.wmv,.avi  # 视频允许的扩展名
+UploadMaxSize = 1024  # 单位为MB
+
+[user]
+PasswordEncrypted = false  # 密码是否需要加密，暂时设定为false，即密码不加密入库
+
+[log]
+logFilePath =

@@ -1,4 +1,4 @@
-package controller
+package api
 
 type Response struct {
 	StatusCode int32  `json:"status_code"`
@@ -46,3 +46,19 @@ type MessagePushEvent struct {
 	FromUserId int64  `json:"user_id,omitempty"`
 	MsgContent string `json:"msg_content,omitempty"`
 }
+
+type UserLoginResponse struct {
+	Response
+	UserId int64  `json:"user_id,omitempty"`
+	Token  string `json:"token"`
+}
+
+type UserResponse struct {
+	Response
+	User User `json:"user"`
+}
+
+const (
+	FavoriteAction   = 1
+	UnFavoriteAction = 2
+)

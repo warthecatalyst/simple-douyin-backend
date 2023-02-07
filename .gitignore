@@ -21,3 +21,9 @@
 go.work
 
 .idea
+.vscode
+
+# More for security concerns
+configs/config.ini
+userdata
+logdata
