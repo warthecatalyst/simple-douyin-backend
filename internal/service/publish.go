@@ -35,6 +35,7 @@ var (
 )
 
 func GetPublishServiceInstance() *publishService {
+	initRedis()
 	publishOnce.Do(func() {
 		publishServiceInstance = &publishService{}
 	})

@@ -11,6 +11,7 @@ const (
 	NoVideoErr
 
 	InnerDataBaseErr
+	RedisDBErr
 	CreateDataErr
 	TokenInvalidErr
 	UserNotExistErr
@@ -34,6 +35,7 @@ var ErrorCodeToMsg = map[ErrorType]string{
 	NoVideoErr:        "No video matches the requirement",
 
 	InnerDataBaseErr:      "Inner database error",
+	RedisDBErr:            "Redis Cache error",
 	CreateDataErr:         "Create data error",
 	TokenInvalidErr:       "Invalid Token",
 	UserNotExistErr:       "User doesn't exist",

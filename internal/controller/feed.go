@@ -46,7 +46,7 @@ func Feed(c context.Context, ctx *app.RequestContext) {
 		}
 	}
 	latestTimeStr := ctx.Query("latest_time")
-	logger.GlobalLogger.Printf("latestTime = %v", latestTimeStr)
+	logger.GlobalLogger.Printf("Time = %v, latestTime = %v", time.Now(), latestTimeStr)
 	var latestTime time.Time
 	if latestTimeStr == "" {
 		latestTime = time.Now()
@@ -59,7 +59,7 @@ func Feed(c context.Context, ctx *app.RequestContext) {
 			})
 			return
 		}
-		latestTime = time.Unix(latestTimeInt, 0)
+		latestTime = time.UnixMilli(latestTimeInt)
 	}
 
 	nextTime, videoList, err := service.GetFeedServiceInstance().Feed(userId, latestTime)

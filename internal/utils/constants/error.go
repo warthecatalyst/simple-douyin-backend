@@ -16,6 +16,7 @@ var (
 	RecordAlreadyExistErr = errors.New(api.ErrorCodeToMsg[api.RecordAlreadyExistErr])
 	RecordNotMatchErr     = errors.New(api.ErrorCodeToMsg[api.RecordNotMatchErr])
 	InnerDataBaseErr      = errors.New(api.ErrorCodeToMsg[api.InnerDataBaseErr])
+	RedisDBErr            = errors.New(api.ErrorCodeToMsg[api.RedisDBErr])
 	CreateDataErr         = errors.New(api.ErrorCodeToMsg[api.CreateDataErr])
 
 	VideoFormatErr = errors.New(api.ErrorCodeToMsg[api.VideoFormationErr])

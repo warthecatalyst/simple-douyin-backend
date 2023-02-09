@@ -6,8 +6,10 @@ import (
 	"github.com/rs/zerolog/log"
 	"gopkg.in/ini.v1"
 	"gorm.io/gorm"
+	"math/rand"
 	"os"
 	"strings"
+	"time"
 )
 
 const (
@@ -70,6 +72,7 @@ func InitConfig() {
 	if err != nil {
 		log.Panic().Caller().Err(errors.New("配置文件初始化失败"))
 	}
+	rand.Seed(time.Now().Unix())
 
 	loadServer(f)
 	loadDb(f)

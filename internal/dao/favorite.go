@@ -49,8 +49,8 @@ func (f favoriteDao) SetFavoriteCount(videoId int64, favoriteCount int32) error 
 	})
 }
 
-//Add 向数据库中插入一条点赞记录，将已有记录设置为1
-func (f *favoriteDao) Add(userId, videoId int64) error {
+//FavoriteAction 向数据库中插入一条点赞记录，若已有点赞记录，将该点赞记录设置为1
+func (f *favoriteDao) FavoriteAction(userId, videoId int64) error {
 	return db.Transaction(func(tx *gorm.DB) error {
 		var err error
 		var favor model.Favourite
@@ -77,8 +77,8 @@ func (f *favoriteDao) Add(userId, videoId int64) error {
 	})
 }
 
-//Del 从数据库中删除一条点赞记录，软删除，将点赞的记录设置为0
-func (f *favoriteDao) Del(userId, videoId int64) error {
+//UnfavoriteAction 从数据库中软删除一条点赞记录，也即将点赞的记录设置为0
+func (f *favoriteDao) UnfavoriteAction(userId, videoId int64) error {
 	return db.Transaction(func(tx *gorm.DB) error {
 		var err error
 		var favor model.Favourite
@@ -118,7 +118,7 @@ func (f *favoriteDao) GetFavoriteList(userId int64) ([]*model.Video, error) {
 }
 
 // CheckFavorite 查看一个用户是否点赞过一个视频
-func (f favoriteDao) CheckFavorite(userId, videoId int64) (bool, error) {
+func (f *favoriteDao) CheckFavorite(userId, videoId int64) (bool, error) {
 	var favor model.Favourite
 	err := db.Where("video_id = ? And user_id = ? And is_favor = ?", videoId, userId, 1).First(&favor).Error
 	if errors.Is(gorm.ErrRecordNotFound, err) {
@@ -127,4 +127,18 @@ func (f favoriteDao) CheckFavorite(userId, videoId int64) (bool, error) {
 		return false, constants.InnerDataBaseErr
 	}
 	return true, nil
+}
+
+// HardDeleteUnFavorite 在数据库中删除所有软删除的点赞条目
+func (f *favoriteDao) HardDeleteUnFavorite() error {
+	err := db.Where("is_favor = ?", 0).Delete(&model.Favourite{}).Error
+	if err != nil {
+		return constants.InnerDataBaseErr
+	}
+	return nil
+}
+
+// GetFromMessageQueue 从消息队列中异步获取点赞信息
+func (f *favoriteDao) GetFromMessageQueue() error {
+	return nil
 }

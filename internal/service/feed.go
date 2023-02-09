@@ -17,6 +17,7 @@ var (
 )
 
 func GetFeedServiceInstance() *feedService {
+	initRedis()
 	feedOnce.Do(func() {
 		feedServiceInstance = &feedService{}
 	})
@@ -39,5 +40,5 @@ func (f *feedService) Feed(userId int64, latestTime time.Time) (int64, []api.Vid
 	if err != nil {
 		return -1, nil, err
 	}
-	return videos[len(videos)-1].CreatedAt.Unix(), videoList, nil
+	return videos[len(videos)-1].CreatedAt.UnixMilli(), videoList, nil
 }
