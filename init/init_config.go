@@ -19,7 +19,20 @@ const (
 // stdOutLogger 初始化标准输出的Logger
 var stdOutLogger = zerolog.New(os.Stdout)
 
-type OssConfig struct {
+type kafkaProducerConfig struct {
+	Host            string
+	Port            string
+	RequireACKs     string
+	Partitioner     string
+	ReturnSuccesses bool
+}
+
+type KafkaConsumerConfig struct {
+	Host string
+	Port string
+}
+
+type ossConfig struct {
 	Url             string
 	Bucket          string
 	BucketDirectory string
@@ -27,14 +40,14 @@ type OssConfig struct {
 	AccessKeySecret string
 }
 
-type VideoConfig struct {
+type videoConfig struct {
 	SavePath      string
 	AllowedExts   []string
 	UploadMaxSize int64
 }
 
-type UserConfig struct {
-	PasswordEncrpted bool
+type userConfig struct {
+	PasswordEncrypted bool
 }
 
 type LogConfig struct {
@@ -52,16 +65,19 @@ var (
 	dbName     string // 数据库名
 	dbLogLevel string // 数据库日志打印级别
 
-	RdbHost string // redis主机
-	RdbPort string // redis端口
+	rdbHost string // redis主机
+	rdbPort string // redis端口
 
 	FeedListLength int
 
-	OssConf OssConfig
+	kafkaServerConf kafkaProducerConfig
+	kafkaClientConf KafkaConsumerConfig
 
-	VideoConf VideoConfig
+	OssConf ossConfig
 
-	UserConf UserConfig
+	VideoConf videoConfig
+
+	UserConf userConfig
 
 	LogConf LogConfig
 )
@@ -77,6 +93,8 @@ func InitConfig() {
 	loadServer(f)
 	loadDb(f)
 	loadRdb(f)
+	loadKafkaServer(f)
+	loadKafkaClient(f)
 	loadFeed(f)
 	loadOss(f)
 	loadVideo(f)
@@ -102,9 +120,24 @@ func loadDb(file *ini.File) {
 }
 
 func loadRdb(file *ini.File) {
-	s := file.Section("redisControl")
-	RdbHost = s.Key("Host").MustString("127.0.0.1")
-	RdbPort = s.Key("Port").MustString("6379")
+	s := file.Section("redis")
+	rdbHost = s.Key("Host").MustString("127.0.0.1")
+	rdbPort = s.Key("Port").MustString("6379")
+}
+
+func loadKafkaServer(file *ini.File) {
+	s := file.Section("kafkaProducer")
+	kafkaServerConf.Host = s.Key("Host").MustString("127.0.0.1")
+	kafkaServerConf.Port = s.Key("Port").MustString("9092")
+	kafkaServerConf.RequireACKs = s.Key("RequireACKs").MustString("WaitForAll")
+	kafkaServerConf.Partitioner = s.Key("ProducerPartitioner").MustString("NewRandomPartitioner")
+	kafkaServerConf.ReturnSuccesses = s.Key("ProducerReturnSuccesses").MustBool(true)
+}
+
+func loadKafkaClient(file *ini.File) {
+	s := file.Section("kafkaConsumer")
+	kafkaClientConf.Host = s.Key("Host").MustString("127.0.0.1")
+	kafkaClientConf.Port = s.Key("Port").MustString("9092")
 }
 
 func loadFeed(file *ini.File) {
@@ -131,7 +164,7 @@ func loadVideo(file *ini.File) {
 
 func loadUser(file *ini.File) {
 	s := file.Section("user")
-	UserConf.PasswordEncrpted = s.Key("PasswordEncrypted").MustBool(false)
+	UserConf.PasswordEncrypted = s.Key("PasswordEncrypted").MustBool(false)
 }
 
 func loadLog(file *ini.File) {

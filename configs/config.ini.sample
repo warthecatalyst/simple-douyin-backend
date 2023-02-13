@@ -1,5 +1,5 @@
 [server]
-Port    = :8888
+Port    = 8888
 
 [database]
 Dbtype     = mysql
@@ -14,23 +14,36 @@ LogLevel   = info
 Host = 127.0.0.1
 Port = 6379
 
+[kafkaProducer]
+Host = 127.0.0.1
+Port = 9092
+RequireACKs = WaitForAll
+Partitioner = NewRandomPartitioner
+ReturnSuccesses = true
+
+[kafkaConsumer]
+Host = 127.0.0.1
+Port = 9092
+
 [feed]
-ListLength = 30  # feed视频获取的视频列表长度
+ListLength = 30
 
 [oss]
-Url             = oss-cn-xxx.aliyuncs.com
-Bucket          = tdouyinbuc
-BucketDirectory = douyin_test
+Url             =
+Bucket          =
+BucketDirectory =
 AccessKeyID     =
 AccessKeySecret =
 
+
 [video]
-SavePath = /tmp/test_video/  # 视频文件临时存放的路径，最后要带斜杠
-AllowedExts = .mp4,.wmv,.avi  # 视频允许的扩展名
+SavePath = ./userdata/
+AllowedExts = .mp4,.wmv,.avi
 UploadMaxSize = 1024  # 单位为MB
 
 [user]
-PasswordEncrypted = false  # 密码是否需要加密，暂时设定为false，即密码不加密入库
+PasswordEncrypted = false  # 密码是否需要加密，目前暂时设定为false，即密码不加密入库
 
 [log]
-logFilePath =
+FileLogWritten = false # 是否要将Log写入文件
+LogFilePath = "./logdata/logFile.txt" # 将Log写入哪一个文件

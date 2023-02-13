@@ -17,7 +17,6 @@ var (
 )
 
 func GetUserDaoInstance() *userDao {
-	dataBaseInitialization()
 	userOnce.Do(func() {
 		userDaoInstance = &userDao{}
 	})
@@ -45,7 +44,7 @@ func (u *userDao) GetUserByUsername(username string) (*model.User, error) {
 // GetUserByUserId 通过userId查找在数据库中的User
 func (u *userDao) GetUserByUserId(userId int64) (*model.User, error) {
 	userInfos := make([]*model.User, 0)
-	if err := db.Where("user_id = ?", userId).Find(&userInfos).Find(&userInfos).Error; err != nil {
+	if err := db.Where("user_id = ?", userId).Find(&userInfos).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, constants.UserNotExistErr
 		}

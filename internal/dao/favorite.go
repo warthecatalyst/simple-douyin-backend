@@ -2,9 +2,13 @@ package dao
 
 import (
 	"errors"
+	"github.com/Shopify/sarama"
 	"github.com/YOJIA-yukino/simple-douyin-backend/internal/model"
 	"github.com/YOJIA-yukino/simple-douyin-backend/internal/utils/constants"
+	"github.com/YOJIA-yukino/simple-douyin-backend/internal/utils/logger"
 	"gorm.io/gorm"
+	"strconv"
+	"strings"
 	"sync"
 )
 
@@ -18,7 +22,6 @@ var (
 
 // GetFavoriteDaoInstance 获取一个Dao层与Favorite操作有关的Instance
 func GetFavoriteDaoInstance() *favoriteDao {
-	dataBaseInitialization()
 	favoriteOnce.Do(func() {
 		favoriteDaoInstance = &favoriteDao{}
 	})
@@ -138,7 +141,52 @@ func (f *favoriteDao) HardDeleteUnFavorite() error {
 	return nil
 }
 
-// GetFromMessageQueue 从消息队列中异步获取点赞信息
-func (f *favoriteDao) GetFromMessageQueue() error {
+// getFromMessageQueue 从消息队列中异步获取点赞信息，然后将信息写入数据库
+func (f *favoriteDao) getFromMessageQueue() error {
+	partitionList, err := kafkaClient.Partitions(constants.KafkaTopicPrefix + "favorite") // 根据topic取到所有的分区
+	if err != nil {
+		logger.GlobalLogger.Printf("fail to get list of partition:err%v\n", err)
+		return constants.KafkaClientErr
+	}
+	logger.GlobalLogger.Printf("partitionList = %v", partitionList)
+	for _, partition := range partitionList { // 遍历所有的分区
+		logger.GlobalLogger.Printf("partition = %v", partition)
+		// 针对每个分区创建一个对应的分区消费者
+		pc, err2 := kafkaClient.ConsumePartition(constants.KafkaTopicPrefix+"favorite", partition, sarama.OffsetNewest)
+		if err2 != nil {
+			logger.GlobalLogger.Printf("failed to start consumer for partition %d,err:%v\n", partition, err)
+			return constants.KafkaClientErr
+		}
+		defer pc.AsyncClose()
+		for msg := range pc.Messages() {
+			// 异步从每个分区消费信息
+			msg1 := msg
+			go func() {
+				logger.GlobalLogger.Print("Got messageFrom 消息队列")
+				key := string(msg1.Key)
+				value := string(msg1.Value)
+				logger.GlobalLogger.Printf("Partition:%d Offset:%d Key:%v Value:%v\n", msg1.Partition, msg1.Offset, key, value)
+				idx := strings.Index(value, ":")
+				userId, _ := strconv.ParseInt(value[0:idx], 10, 64)
+				videoId, _ := strconv.ParseInt(value[idx+1:], 10, 64)
+				logger.GlobalLogger.Printf("userId:%d videoId:%d", userId, videoId)
+				if key == "Favorite" {
+					for {
+						err1 := f.FavoriteAction(userId, videoId)
+						if err1 == nil {
+							break
+						}
+					}
+				} else {
+					for {
+						err1 := f.UnfavoriteAction(userId, videoId)
+						if err1 == nil {
+							break
+						}
+					}
+				}
+			}()
+		}
+	}
 	return nil
 }

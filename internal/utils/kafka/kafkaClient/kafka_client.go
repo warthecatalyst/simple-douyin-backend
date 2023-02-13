@@ -21,7 +21,6 @@ func main2() {
 	fmt.Println(partitionList)
 	for _, partition := range partitionList { // 遍历所有的分区
 		fmt.Println("partition = ", partition)
-		// 针对每个分区创建一个对应的分区消费者
 		pc, err := consumer.ConsumePartition("test", partition, sarama.OffsetNewest)
 		if err != nil {
 			fmt.Printf("failed to start consumer for partition %d,err:%v\n", partition, err)

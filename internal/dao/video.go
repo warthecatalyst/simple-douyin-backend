@@ -20,7 +20,6 @@ var (
 
 // GetVideoDaoInstance 获取一个VideoDao的实例
 func GetVideoDaoInstance() *videoDao {
-	dataBaseInitialization()
 	videoOnce.Do(func() {
 		videoDaoInstance = &videoDao{}
 	})

@@ -12,6 +12,8 @@ const (
 
 	InnerDataBaseErr
 	RedisDBErr
+	KafkaServerErr
+	KafkaClientErr
 	CreateDataErr
 	TokenInvalidErr
 	UserNotExistErr
@@ -36,10 +38,12 @@ var ErrorCodeToMsg = map[ErrorType]string{
 
 	InnerDataBaseErr:      "Inner database error",
 	RedisDBErr:            "Redis Cache error",
+	KafkaServerErr:        "Kafka Server error",
+	KafkaClientErr:        "Kafka Client error",
 	CreateDataErr:         "Create data error",
 	TokenInvalidErr:       "Invalid Token",
 	UserNotExistErr:       "User doesn't exist",
-	UserAlreadyExistErr:   "User already exists",
+	UserAlreadyExistErr:   "用户名已存在",
 	UserIdNotMatchErr:     "Not match userId",
 	RecordNotExistErr:     "Record does not exist",
 	RecordAlreadyExistErr: "Record already exists",

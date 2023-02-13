@@ -19,6 +19,11 @@ func initRedis() {
 	})
 }
 
-func getFavoriteRandomTime() time.Duration {
-	return time.Duration(int64(videoFavoriteExpireTime) + rand.Int63n(int64(12*time.Hour)))
+const (
+	emptyCache           = "{}"
+	emptyCacheExpireTime = time.Hour
+)
+
+func getEmptyCacheExpireTime() time.Duration {
+	return time.Duration(int64(emptyCacheExpireTime) + rand.Int63n(int64(30*time.Minute)))
 }

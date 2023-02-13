@@ -50,7 +50,7 @@ func (u *userService) UserRegisterInfo(username, password string) error {
 		UserName: username,
 	}
 
-	if initialization.UserConf.PasswordEncrpted {
+	if initialization.UserConf.PasswordEncrypted {
 		user.PassWord = md5.MD5(password)
 	} else {
 		user.PassWord = password
@@ -83,7 +83,7 @@ func (u *userService) GetUserByUserId(userId int64) (*model.User, error) {
 		logger.GlobalLogger.Printf("Time = %v, 寻找数据失败, err = %s", err.Error())
 		return nil, err
 	}
-	return userInfo, err
+	return userInfo, nil
 }
 
 // GetUserByUserName 通过username得到user

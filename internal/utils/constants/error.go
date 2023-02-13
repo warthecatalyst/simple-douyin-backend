@@ -17,6 +17,8 @@ var (
 	RecordNotMatchErr     = errors.New(api.ErrorCodeToMsg[api.RecordNotMatchErr])
 	InnerDataBaseErr      = errors.New(api.ErrorCodeToMsg[api.InnerDataBaseErr])
 	RedisDBErr            = errors.New(api.ErrorCodeToMsg[api.RedisDBErr])
+	KafkaServerErr        = errors.New(api.ErrorCodeToMsg[api.KafkaServerErr])
+	KafkaClientErr        = errors.New(api.ErrorCodeToMsg[api.KafkaClientErr])
 	CreateDataErr         = errors.New(api.ErrorCodeToMsg[api.CreateDataErr])
 
 	VideoFormatErr = errors.New(api.ErrorCodeToMsg[api.VideoFormationErr])
