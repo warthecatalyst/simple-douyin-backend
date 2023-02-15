@@ -55,6 +55,16 @@ type LogConfig struct {
 	LogFilePath    string
 }
 
+type RpcConfig struct {
+	Host                string
+	UserServicePort     string
+	VideoServicePort    string
+	FavoriteServicePort string
+	CommentServicePort  string
+	FollowServicePort   string
+	MessageServicePort  string
+}
+
 // 解析配置文件
 var (
 	Port       string // 服务启动端口
@@ -80,6 +90,9 @@ var (
 	UserConf userConfig
 
 	LogConf LogConfig
+
+	RpcCSConf RpcConfig
+	RpcSDConf RpcConfig
 )
 
 func InitConfig() {
@@ -100,6 +113,8 @@ func InitConfig() {
 	loadVideo(f)
 	loadUser(f)
 	loadLog(f)
+	loadRpcCSConf(f)
+	loadRpcSDConf(f)
 }
 
 // loadServer 加载服务器配置
@@ -171,6 +186,29 @@ func loadLog(file *ini.File) {
 	s := file.Section("log")
 	LogConf.LogFileWritten = s.Key("FileLogWritten").MustBool(false)
 	LogConf.LogFilePath = s.Key("LogFilePath").MustString("./logdata/logFile.txt")
+}
+
+func loadRpcCSConf(file *ini.File) {
+	s := file.Section("rpcCS")
+	RpcCSConf.Host = s.Key("Host").MustString("127.0.0.1")
+	RpcCSConf.UserServicePort = s.Key("UserServicePort").MustString(":50051")
+	RpcCSConf.VideoServicePort = s.Key("VideoServicePort").MustString(":50052")
+	RpcCSConf.FavoriteServicePort = s.Key("FavoriteServicePort").MustString(":50053")
+	RpcCSConf.CommentServicePort = s.Key("CommentServicePort").MustString(":50054")
+	RpcCSConf.FollowServicePort = s.Key("FollowServicePort").MustString(":50055")
+	RpcCSConf.MessageServicePort = s.Key("MessageServicePort").MustString(":50056")
+
+}
+
+func loadRpcSDConf(file *ini.File) {
+	s := file.Section("rpcSD")
+	RpcSDConf.Host = s.Key("Host").MustString("127.0.0.1")
+	RpcSDConf.UserServicePort = s.Key("UserServicePort").MustString(":50061")
+	RpcSDConf.VideoServicePort = s.Key("VideoServicePort").MustString(":50062")
+	RpcSDConf.FavoriteServicePort = s.Key("FavoriteServicePort").MustString(":50063")
+	RpcSDConf.CommentServicePort = s.Key("CommentServicePort").MustString(":50064")
+	RpcCSConf.FollowServicePort = s.Key("FollowServicePort").MustString(":50065")
+	RpcSDConf.MessageServicePort = s.Key("MessageServicePort").MustString(":50066")
 }
 
 var db *gorm.DB

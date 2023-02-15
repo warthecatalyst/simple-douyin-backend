@@ -3,14 +3,17 @@ package jwt
 import (
 	"context"
 	"github.com/YOJIA-yukino/simple-douyin-backend/api"
+	pbuser "github.com/YOJIA-yukino/simple-douyin-backend/api/rpc_controller_service/user"
+	initialization "github.com/YOJIA-yukino/simple-douyin-backend/init"
 	"github.com/YOJIA-yukino/simple-douyin-backend/internal/model"
-	"github.com/YOJIA-yukino/simple-douyin-backend/internal/service"
 	"github.com/YOJIA-yukino/simple-douyin-backend/internal/utils/logger"
 	"github.com/cloudwego/hertz/pkg/app"
 	"github.com/cloudwego/hertz/pkg/common/hlog"
 	"github.com/cloudwego/hertz/pkg/common/utils"
 	"github.com/cloudwego/hertz/pkg/protocol/consts"
 	"github.com/hertz-contrib/jwt"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 	"net/http"
 	"time"
 )
@@ -25,14 +28,30 @@ type UserStruct struct {
 	Password string `form:"password" json:"password" query:"password" vd:"(len($) > 0 && len($) < 128); msg:'Illegal format'"`
 }
 
-func LoginResponse(c context.Context, ctx *app.RequestContext, token string) {
-	username := ctx.Query("username")
-	password := ctx.Query("password")
+func LoginResponse(content context.Context, requestContext *app.RequestContext, token string) {
+	username := requestContext.Query("username")
+	password := requestContext.Query("password")
 
-	userInfo, err := service.GetUserServiceInstance().CheckUserInfo(username, password)
+	address := initialization.RpcCSConf.Host + initialization.RpcCSConf.UserServicePort
+	conn, err := grpc.Dial(address, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		logger.GlobalLogger.Printf("did not connect: %v", err)
+	}
+	defer conn.Close()
+	grpcClient := pbuser.NewUserInfoClient(conn)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+	userInfoResp, err := grpcClient.GetUserInfo(ctx, &pbuser.UserPost{
+		Username: username,
+		Password: password,
+	})
 
 	if err != nil {
-		ctx.JSON(consts.StatusOK, api.UserLoginResponse{
+		logger.GlobalLogger.Printf("Can't get RPC From UserService")
+	}
+
+	if userInfoResp.BaseResp.StatusCode != 0 {
+		requestContext.JSON(consts.StatusOK, api.UserLoginResponse{
 			Response: api.Response{
 				StatusCode: int32(api.UserNotExistErr),
 				StatusMsg:  api.ErrorCodeToMsg[api.UserNotExistErr],
@@ -40,10 +59,12 @@ func LoginResponse(c context.Context, ctx *app.RequestContext, token string) {
 		})
 	}
 
-	ctx.JSON(consts.StatusOK, api.UserLoginResponse{
-		Response: api.Response{},
-		UserId:   userInfo.UserID,
-		Token:    token,
+	requestContext.JSON(consts.StatusOK, api.UserLoginResponse{
+		Response: api.Response{
+			StatusCode: 0,
+		},
+		UserId: userInfoResp.Id,
+		Token:  token,
 	})
 }
 
@@ -59,13 +80,33 @@ func InitJwt() {
 		LoginResponse: func(ctx context.Context, c *app.RequestContext, code int, token string, expire time.Time) {
 			LoginResponse(ctx, c, token)
 		},
-		Authenticator: func(ctx context.Context, c *app.RequestContext) (interface{}, error) {
+		Authenticator: func(content context.Context, requestContext *app.RequestContext) (interface{}, error) {
 			var userStruct UserStruct
-			if err := c.BindAndValidate(&userStruct); err != nil {
+			if err := requestContext.BindAndValidate(&userStruct); err != nil {
 				return nil, err
 			}
-			userInfo, err := service.GetUserServiceInstance().CheckUserInfo(userStruct.Username, userStruct.Password)
-
+			address := initialization.RpcCSConf.Host + initialization.RpcCSConf.UserServicePort
+			conn, err := grpc.Dial(address, grpc.WithTransportCredentials(insecure.NewCredentials()))
+			if err != nil {
+				logger.GlobalLogger.Printf("did not connect: %v", err)
+			}
+			defer conn.Close()
+			grpcClient := pbuser.NewUserInfoClient(conn)
+			ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+			defer cancel()
+			userInfoResp, err := grpcClient.GetUserInfo(ctx, &pbuser.UserPost{
+				Username: userStruct.Username,
+				Password: userStruct.Password,
+			})
+			if err != nil {
+				return nil, err
+			}
+			userInfo := &model.User{
+				UserID:        userInfoResp.Id,
+				UserName:      userInfoResp.Name,
+				FollowCount:   userInfoResp.FollowCnt,
+				FollowerCount: userInfoResp.FollowerCnt,
+			}
 			if err != nil {
 				return nil, err
 			}

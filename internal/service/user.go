@@ -1,7 +1,10 @@
 package service
 
 import (
+	"context"
 	"errors"
+	"github.com/YOJIA-yukino/simple-douyin-backend/api"
+	pb "github.com/YOJIA-yukino/simple-douyin-backend/api/rpc_controller_service/user"
 	initialization "github.com/YOJIA-yukino/simple-douyin-backend/init"
 	"github.com/YOJIA-yukino/simple-douyin-backend/internal/dao"
 	"github.com/YOJIA-yukino/simple-douyin-backend/internal/model"
@@ -14,32 +17,106 @@ import (
 )
 
 // userService 与用户相关的操作使用的结构体
-type userService struct{}
+type userService struct {
+	pb.UnimplementedUserInfoServer
+}
 
 var (
 	userServiceInstance *userService
 	userOnce            sync.Once
 )
 
+// GetUserServiceInstance 单例模式，获得一个userService的实例
 func GetUserServiceInstance() *userService {
+	initRedis()
+	initKafka()
 	userOnce.Do(func() {
 		userServiceInstance = &userService{}
 	})
 	return userServiceInstance
 }
 
-func (u *userService) UserRegisterInfo(username, password string) error {
+// UserRegisterAction RPC对用户注册的请求
+func (u *userService) UserRegisterAction(ctx context.Context, in *pb.UserPost) (*pb.UserResp, error) {
+	username := in.Username
+	password := in.Password
+	userInfo, err := u.UserRegisterInfo(username, password)
+	if err != nil {
+		if errors.Is(constants.UserAlreadyExistErr, err) {
+			return &pb.UserResp{
+				UserId: 0,
+				Token:  "",
+				BaseResp: &pb.BaseResp{
+					StatusCode: int32(api.UserAlreadyExistErr),
+					StatusMsg:  api.ErrorCodeToMsg[api.UserAlreadyExistErr],
+				},
+			}, nil
+		} else {
+			return &pb.UserResp{
+				UserId: 0,
+				Token:  "",
+				BaseResp: &pb.BaseResp{
+					StatusCode: int32(api.InnerDataBaseErr),
+					StatusMsg:  err.Error(),
+				},
+			}, err
+		}
+	}
+	return &pb.UserResp{
+		UserId: userInfo.UserID,
+		Token:  "",
+		BaseResp: &pb.BaseResp{
+			StatusCode: 0,
+			StatusMsg:  "",
+		},
+	}, nil
+}
+
+// GetUserInfo RPC获取用户信息
+func (u *userService) GetUserInfo(ctx context.Context, in *pb.UserPost) (*pb.UserInfoResp, error) {
+	username := in.Username
+	password := in.Password
+	userInfo, err := u.CheckUserInfo(username, password)
+	if err != nil {
+		if errors.Is(constants.UserNotExistErr, err) {
+			return &pb.UserInfoResp{
+				BaseResp: &pb.BaseResp{
+					StatusCode: int32(api.UserNotExistErr),
+					StatusMsg:  api.ErrorCodeToMsg[api.UserNotExistErr],
+				},
+			}, err
+		} else {
+			return &pb.UserInfoResp{BaseResp: &pb.BaseResp{
+				StatusCode: int32(api.InnerDataBaseErr),
+				StatusMsg:  api.ErrorCodeToMsg[api.InnerDataBaseErr],
+			}}, err
+		}
+	}
+	return &pb.UserInfoResp{
+		Id:          userInfo.UserID,
+		Name:        userInfo.UserName,
+		FollowCnt:   userInfo.FollowCount,
+		FollowerCnt: userInfo.FollowerCount,
+		BaseResp:    &pb.BaseResp{
+			StatusCode: 0,
+			StatusMsg:  "",
+		},
+	},nil
+}
+
+// UserRegisterInfo 用户登录请求的内部处理逻辑
+func (u *userService) UserRegisterInfo(username, password string) (*model.User, error) {
 	var err error
 	userInfo, err := dao.GetUserDaoInstance().GetUserByUsername(username)
 
 	if errors.Is(constants.InnerDataBaseErr, err) {
 		logger.GlobalLogger.Error().Caller().Str("用户注册失败", err.Error())
-		return err
+		return nil, err
 	}
 
 	if userInfo != nil {
 		logger.GlobalLogger.Error().Caller().Str("用户名已存在", err.Error())
-		return constants.UserAlreadyExistErr
+		return nil, constants.UserAlreadyExistErr
 	}
 
 	userId := idGenerator.GenerateUserId()
@@ -59,9 +136,9 @@ func (u *userService) UserRegisterInfo(username, password string) error {
 
 	if err != nil {
 		log.Error().Caller().Str("用户注册错误", err.Error())
-		return constants.CreateDataErr
+		return nil, constants.CreateDataErr
 	}
-	return nil
+	return user, nil
 }
 
 //CheckUserInfo 从username,password获得User

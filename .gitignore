@@ -8,7 +8,7 @@
 *.so
 *.dylib
 
-# Test binary, built with `go test -c`
+# Test binary, built with `go test -requestContext`
 *.test
 
 # Output of the go coverage tool, specifically when used with LiteIDE
@@ -22,6 +22,7 @@ go.work
 
 .idea
 .vscode
+.run
 
 # More for security concerns
 configs/config.ini

@@ -47,3 +47,21 @@ PasswordEncrypted = false  # 密码是否需要加密，目前暂时设定为fal
 [log]
 FileLogWritten = false # 是否要将Log写入文件
 LogFilePath = "./logdata/logFile.txt" # 将Log写入哪一个文件
+
+[rpcCS]
+Host = 127.0.0.1
+UserServicePort = :50051
+VideoServicePort = :50052
+FavoriteServicePort = :50053
+CommentServicePort = :50054
+FollowServicePort = :50055
+MessageServicePort = :50056
+
+[rpcSD]
+Host = 127.0.0.1
+UserServicePort = :50061
+VideoServicePort = :50062
+FavoriteServicePort = :50063
+CommentServicePort = :50064
+FollowServicePort = :50065
+MessageServicePort = :50066

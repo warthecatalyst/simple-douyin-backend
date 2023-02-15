@@ -1,7 +1,7 @@
 package main
 
 import (
-	pbfavorite "github.com/YOJIA-yukino/simple-douyin-backend/api/rpc_controller_service/favorite/route"
+	pbuser "github.com/YOJIA-yukino/simple-douyin-backend/api/rpc_controller_service/user"
 	initialization "github.com/YOJIA-yukino/simple-douyin-backend/init"
 	"github.com/YOJIA-yukino/simple-douyin-backend/internal/dao"
 	"github.com/YOJIA-yukino/simple-douyin-backend/internal/service"
@@ -10,10 +10,7 @@ import (
 	"github.com/YOJIA-yukino/simple-douyin-backend/internal/utils/logger"
 	"google.golang.org/grpc"
 	"net"
-)
-
-const (
-	port = ":50051"
+	"sync"
 )
 
 func initAll() {
@@ -33,15 +30,24 @@ func initAll() {
 	dao.DaoInitialization()
 }
 
+var wg sync.WaitGroup
+
 func main() {
 	initAll()
-	lis, err := net.Listen("tcp", port)
-	if err != nil {
-		logger.GlobalLogger.Fatal().Err(err)
-	}
-	s := grpc.NewServer()
-	pbfavorite.RegisterFavoriteInfoServer(s, service.GetFavoriteServiceInstance())
-	if err = s.Serve(lis); err != nil {
-		panic(err)
-	}
+
+	// 开一个协程监听UserService端口
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		lis, err := net.Listen("tcp", initialization.RpcSDConf.UserServicePort)
+		if err != nil {
+			logger.GlobalLogger.Fatal().Err(err)
+		}
+		s := grpc.NewServer()
+		pbuser.RegisterUserInfoServer(s, service.GetUserServiceInstance())
+		if err = s.Serve(lis); err != nil {
+			panic(err)
+		}
+	}()
+
 }
