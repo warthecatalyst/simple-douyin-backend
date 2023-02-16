@@ -238,7 +238,7 @@ func (f *favoriteService) writeToRedis(userId, videoId int64, actionType int32) 
 
 //FavoriteListInfo service层查找用户点赞过的所有视频
 func (f *favoriteService) FavoriteListInfo(loginUserId, userId int64) (*[]api.Video, error) {
-	_, err := GetUserServiceInstance().GetUserByUserId(userId)
+	_, err := GetUserServiceInstance().getUserByUserId(userId)
 	if errors.Is(constants.UserNotExistErr, err) {
 		return nil, err
 	}

@@ -16,6 +16,7 @@ var (
 	RecordAlreadyExistErr = errors.New(api.ErrorCodeToMsg[api.RecordAlreadyExistErr])
 	RecordNotMatchErr     = errors.New(api.ErrorCodeToMsg[api.RecordNotMatchErr])
 	InnerDataBaseErr      = errors.New(api.ErrorCodeToMsg[api.InnerDataBaseErr])
+	InnerConnectionErr    = errors.New(api.ErrorCodeToMsg[api.InnerConnectionErr])
 	RedisDBErr            = errors.New(api.ErrorCodeToMsg[api.RedisDBErr])
 	KafkaServerErr        = errors.New(api.ErrorCodeToMsg[api.KafkaServerErr])
 	KafkaClientErr        = errors.New(api.ErrorCodeToMsg[api.KafkaClientErr])

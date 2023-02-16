@@ -6,7 +6,6 @@ import (
 	"github.com/YOJIA-yukino/simple-douyin-backend/internal/dao"
 	"github.com/YOJIA-yukino/simple-douyin-backend/internal/service"
 	"github.com/YOJIA-yukino/simple-douyin-backend/internal/utils/cronUtils"
-	"github.com/YOJIA-yukino/simple-douyin-backend/internal/utils/jwt"
 	"github.com/YOJIA-yukino/simple-douyin-backend/internal/utils/logger"
 	"google.golang.org/grpc"
 	"net"
@@ -23,7 +22,6 @@ func initAll() {
 
 	//Init Utils
 	logger.InitLogger(initialization.LogConf)
-	jwt.InitJwt()
 	cronUtils.InitCron()
 
 	//Init lower Levels

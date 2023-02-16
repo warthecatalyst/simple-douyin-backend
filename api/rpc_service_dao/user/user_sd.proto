@@ -4,38 +4,28 @@ option go_package = "github.com/YOJIA-yukino/simple-douyin-backend/api/rpc_servi
 
 package user;
 
-service UserInfo{
-  rpc userRegister(UserPost) returns(UserResp);
-  rpc userLogin(UserPost) returns(UserResp);
-  rpc getUserInfo(UserPost) returns(UserInfoResp);
-  rpc getUserIdByUserName(UserPost) returns(UserResp);
-  rpc getUserInfoByUserName(UserInfoPost) returns(UserInfoResp);
+service UserDaoInfo{
+  rpc addUser(UserDaoPost) returns(BaseDaoResp);
+  rpc getUserInfoByUserName(UserDaoPost) returns(UserDaoInfoResp);
+  rpc getUserInfoByUserId(UserDaoPost) returns(UserDaoInfoResp);
+  rpc getUserInfoByUserNameAndPassword(UserDaoPost) returns(UserDaoInfoResp);
 }
 
-message BaseResp{
+message BaseDaoResp{
   int32 status_code = 1;
   string status_msg = 2;
 }
 
-message UserPost{
+message UserDaoPost{
   string username = 1;
   string password = 2;
+  int64 userId = 3;
 }
 
-message UserResp{
-  int64 userId = 1;
-  string token = 2;
-  BaseResp baseResp = 3;
-}
-
-message UserInfoPost{
-  int64 Id = 1;
-}
-
-message UserInfoResp{
+message UserDaoInfoResp{
   int64 Id = 1;
   string Name = 2;
   int64 FollowCnt = 3;
   int64 FollowerCnt = 4;
-  BaseResp baseResp = 5;
+  BaseDaoResp baseResp = 5;
 }

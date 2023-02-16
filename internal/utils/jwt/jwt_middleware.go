@@ -38,10 +38,10 @@ func LoginResponse(content context.Context, requestContext *app.RequestContext, 
 		logger.GlobalLogger.Printf("did not connect: %v", err)
 	}
 	defer conn.Close()
-	grpcClient := pbuser.NewUserInfoClient(conn)
+	grpcClient := pbuser.NewUserServiceInfoClient(conn)
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
-	userInfoResp, err := grpcClient.GetUserInfo(ctx, &pbuser.UserPost{
+	userInfoResp, err := grpcClient.GetUserInfo(ctx, &pbuser.UserServicePost{
 		Username: username,
 		Password: password,
 	})
@@ -91,10 +91,10 @@ func InitJwt() {
 				logger.GlobalLogger.Printf("did not connect: %v", err)
 			}
 			defer conn.Close()
-			grpcClient := pbuser.NewUserInfoClient(conn)
+			grpcClient := pbuser.NewUserServiceInfoClient(conn)
 			ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 			defer cancel()
-			userInfoResp, err := grpcClient.GetUserInfo(ctx, &pbuser.UserPost{
+			userInfoResp, err := grpcClient.GetUserInfo(ctx, &pbuser.UserServicePost{
 				Username: userStruct.Username,
 				Password: userStruct.Password,
 			})

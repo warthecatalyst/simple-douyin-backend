@@ -4,38 +4,35 @@ option go_package = "github.com/YOJIA-yukino/simple-douyin-backend/api/rpc_contr
 
 package user;
 
-service UserInfo{
-  rpc userRegister(UserPost) returns(UserResp);
-  rpc userLogin(UserPost) returns(UserResp);
-  rpc getUserInfo(UserPost) returns(UserInfoResp);
-  rpc getUserIdByUserName(UserPost) returns(UserResp);
-  rpc getUserInfoByUserName(UserInfoPost) returns(UserInfoResp);
+service UserServiceInfo{
+  rpc userRegister(UserServicePost) returns(UserServiceResp);
+  rpc getUserInfo(UserServicePost) returns(UserServiceInfoResp);
+  rpc getUserIdByUserName(UserServicePost) returns(UserServiceResp);
 }
 
-message BaseResp{
+message BaseServiceResp{
   int32 status_code = 1;
   string status_msg = 2;
 }
 
-message UserPost{
+message UserServicePost{
   string username = 1;
   string password = 2;
+  int64  queryUserId = 3;
+  int64  loginUserId = 4;
 }
 
-message UserResp{
+message UserServiceResp{
   int64 userId = 1;
   string token = 2;
-  BaseResp baseResp = 3;
+  BaseServiceResp baseResp = 3;
 }
 
-message UserInfoPost{
-  int64 Id = 1;
-}
-
-message UserInfoResp{
+message UserServiceInfoResp{
   int64 Id = 1;
   string Name = 2;
   int64 FollowCnt = 3;
   int64 FollowerCnt = 4;
-  BaseResp baseResp = 5;
+  bool IsFollow = 5;
+  BaseServiceResp baseResp = 6;
 }

@@ -12,7 +12,7 @@ import (
 func getVideoListByModel(userId int64, videos []*model.Video) ([]api.Video, error) {
 	videoList := make([]api.Video, len(videos))
 	for i, v := range videos {
-		userInfo, err := GetUserServiceInstance().GetUserByUserId(v.UserID)
+		userInfo, err := GetUserServiceInstance().getUserByUserId(v.UserID)
 		isFavor, err := dao.GetFavoriteDaoInstance().CheckFavorite(userId, v.VideoID)
 		if err != nil {
 			return nil, constants.InnerDataBaseErr
@@ -41,7 +41,7 @@ func getVideoListByID(userId int64, videoIds []string) ([]api.Video, error) {
 	for i, videoIdstr := range videoIds {
 		videoId, _ := strconv.ParseInt(videoIdstr, 10, 64)
 		videoInfo, err := dao.GetVideoDaoInstance().GetVideoByVideoId(videoId)
-		userInfo, err := GetUserServiceInstance().GetUserByUserId(userId)
+		userInfo, err := GetUserServiceInstance().getUserByUserId(userId)
 		isFavor, err := dao.GetFavoriteDaoInstance().CheckFavorite(userId, videoId)
 		if err != nil {
 			return nil, constants.InnerDataBaseErr

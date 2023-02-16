@@ -1,0 +1,5 @@
+syntax = "proto3";
+
+option go_package = "github.com/YOJIA-yukino/simple-douyin-backend/api/rpc_controller_service/video";
+
+package video;
