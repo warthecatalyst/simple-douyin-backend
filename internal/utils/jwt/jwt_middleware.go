@@ -2,10 +2,12 @@ package jwt
 
 import (
 	"context"
+	"errors"
 	"github.com/YOJIA-yukino/simple-douyin-backend/api"
 	pbuser "github.com/YOJIA-yukino/simple-douyin-backend/api/rpc_controller_service/user"
 	initialization "github.com/YOJIA-yukino/simple-douyin-backend/init"
 	"github.com/YOJIA-yukino/simple-douyin-backend/internal/model"
+	"github.com/YOJIA-yukino/simple-douyin-backend/internal/utils/constants"
 	"github.com/YOJIA-yukino/simple-douyin-backend/internal/utils/logger"
 	"github.com/cloudwego/hertz/pkg/app"
 	"github.com/cloudwego/hertz/pkg/common/hlog"
@@ -13,7 +15,9 @@ import (
 	"github.com/cloudwego/hertz/pkg/protocol/consts"
 	"github.com/hertz-contrib/jwt"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/status"
 	"net/http"
 	"time"
 )
@@ -32,7 +36,7 @@ func LoginResponse(content context.Context, requestContext *app.RequestContext, 
 	username := requestContext.Query("username")
 	password := requestContext.Query("password")
 
-	address := initialization.RpcCSConf.Host + initialization.RpcCSConf.UserServicePort
+	address := initialization.RpcCSConf.UserServiceHost + initialization.RpcCSConf.UserServicePort
 	conn, err := grpc.Dial(address, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		logger.GlobalLogger.Printf("did not connect: %v", err)
@@ -47,16 +51,29 @@ func LoginResponse(content context.Context, requestContext *app.RequestContext, 
 	})
 
 	if err != nil {
-		logger.GlobalLogger.Printf("Can't get RPC From UserService")
-	}
-
-	if userInfoResp.BaseResp.StatusCode != 0 {
-		requestContext.JSON(consts.StatusOK, api.UserLoginResponse{
-			Response: api.Response{
-				StatusCode: int32(api.UserNotExistErr),
-				StatusMsg:  api.ErrorCodeToMsg[api.UserNotExistErr],
-			},
-		})
+		logger.GlobalLogger.Printf("Got error from RPC = %v", err)
+		if errors.Is(status.Errorf(codes.AlreadyExists, constants.UserAlreadyExistErr.Error()), err) {
+			requestContext.JSON(consts.StatusOK, api.UserLoginResponse{
+				Response: api.Response{
+					StatusCode: int32(api.UserAlreadyExistErr),
+					StatusMsg:  api.ErrorCodeToMsg[api.UserAlreadyExistErr],
+				},
+			})
+		} else if errors.Is(status.Errorf(codes.Internal, constants.InnerDataBaseErr.Error()), err) {
+			requestContext.JSON(consts.StatusOK, api.UserLoginResponse{
+				Response: api.Response{
+					StatusCode: int32(api.InnerDataBaseErr),
+					StatusMsg:  api.ErrorCodeToMsg[api.InnerDataBaseErr],
+				},
+			})
+		} else {
+			requestContext.JSON(consts.StatusOK, api.UserLoginResponse{
+				Response: api.Response{
+					StatusCode: int32(api.InnerConnectionErr),
+					StatusMsg:  api.ErrorCodeToMsg[api.InnerConnectionErr],
+				},
+			})
+		}
 	}
 
 	requestContext.JSON(consts.StatusOK, api.UserLoginResponse{
@@ -85,7 +102,7 @@ func InitJwt() {
 			if err := requestContext.BindAndValidate(&userStruct); err != nil {
 				return nil, err
 			}
-			address := initialization.RpcCSConf.Host + initialization.RpcCSConf.UserServicePort
+			address := initialization.RpcCSConf.UserServiceHost + initialization.RpcCSConf.UserServicePort
 			conn, err := grpc.Dial(address, grpc.WithTransportCredentials(insecure.NewCredentials()))
 			if err != nil {
 				logger.GlobalLogger.Printf("did not connect: %v", err)

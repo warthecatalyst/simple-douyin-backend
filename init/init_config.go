@@ -56,12 +56,17 @@ type LogConfig struct {
 }
 
 type RpcConfig struct {
-	Host                string
+	UserServiceHost     string
 	UserServicePort     string
+	VideoServiceHost    string
 	VideoServicePort    string
+	FavoriteServiceHost string
 	FavoriteServicePort string
+	CommentServiceHost  string
 	CommentServicePort  string
+	FollowServiceHost   string
 	FollowServicePort   string
+	MessageServiceHost  string
 	MessageServicePort  string
 }
 
@@ -136,13 +141,13 @@ func loadDb(file *ini.File) {
 
 func loadRdb(file *ini.File) {
 	s := file.Section("redis")
-	rdbHost = s.Key("Host").MustString("127.0.0.1")
+	rdbHost = s.Key("UserServiceHost").MustString("127.0.0.1")
 	rdbPort = s.Key("Port").MustString("6379")
 }
 
 func loadKafkaServer(file *ini.File) {
 	s := file.Section("kafkaProducer")
-	kafkaServerConf.Host = s.Key("Host").MustString("127.0.0.1")
+	kafkaServerConf.Host = s.Key("UserServiceHost").MustString("127.0.0.1")
 	kafkaServerConf.Port = s.Key("Port").MustString("9092")
 	kafkaServerConf.RequireACKs = s.Key("RequireACKs").MustString("WaitForAll")
 	kafkaServerConf.Partitioner = s.Key("ProducerPartitioner").MustString("NewRandomPartitioner")
@@ -151,7 +156,7 @@ func loadKafkaServer(file *ini.File) {
 
 func loadKafkaClient(file *ini.File) {
 	s := file.Section("kafkaConsumer")
-	kafkaClientConf.Host = s.Key("Host").MustString("127.0.0.1")
+	kafkaClientConf.Host = s.Key("UserServiceHost").MustString("127.0.0.1")
 	kafkaClientConf.Port = s.Key("Port").MustString("9092")
 }
 
@@ -190,24 +195,34 @@ func loadLog(file *ini.File) {
 
 func loadRpcCSConf(file *ini.File) {
 	s := file.Section("rpcCS")
-	RpcCSConf.Host = s.Key("Host").MustString("127.0.0.1")
+	RpcCSConf.UserServiceHost = s.Key("UserServiceHost").MustString("127.0.0.1")
 	RpcCSConf.UserServicePort = s.Key("UserServicePort").MustString(":50051")
+	RpcCSConf.VideoServiceHost = s.Key("VideoServiceHost").MustString("127.0.0.1")
 	RpcCSConf.VideoServicePort = s.Key("VideoServicePort").MustString(":50052")
+	RpcCSConf.FavoriteServiceHost = s.Key("FavoriteServiceHost").MustString("127.0.0.1")
 	RpcCSConf.FavoriteServicePort = s.Key("FavoriteServicePort").MustString(":50053")
+	RpcCSConf.CommentServiceHost = s.Key("CommentServiceHost").MustString("127.0.0.1")
 	RpcCSConf.CommentServicePort = s.Key("CommentServicePort").MustString(":50054")
+	RpcCSConf.FollowServiceHost = s.Key("FollowServiceHost").MustString("127.0.0.1")
 	RpcCSConf.FollowServicePort = s.Key("FollowServicePort").MustString(":50055")
+	RpcCSConf.MessageServiceHost = s.Key("MessageServiceHost").MustString("127.0.0.1")
 	RpcCSConf.MessageServicePort = s.Key("MessageServicePort").MustString(":50056")
 
 }
 
 func loadRpcSDConf(file *ini.File) {
 	s := file.Section("rpcSD")
-	RpcSDConf.Host = s.Key("Host").MustString("127.0.0.1")
+	RpcSDConf.UserServiceHost = s.Key("UserServiceHost").MustString("127.0.0.1")
 	RpcSDConf.UserServicePort = s.Key("UserServicePort").MustString(":50061")
+	RpcSDConf.VideoServiceHost = s.Key("VideoServiceHost").MustString("127.0.0.1")
 	RpcSDConf.VideoServicePort = s.Key("VideoServicePort").MustString(":50062")
+	RpcSDConf.FavoriteServiceHost = s.Key("FavoriteServiceHost").MustString("127.0.0.1")
 	RpcSDConf.FavoriteServicePort = s.Key("FavoriteServicePort").MustString(":50063")
+	RpcSDConf.CommentServiceHost = s.Key("CommentServiceHost").MustString("127.0.0.1")
 	RpcSDConf.CommentServicePort = s.Key("CommentServicePort").MustString(":50064")
-	RpcCSConf.FollowServicePort = s.Key("FollowServicePort").MustString(":50065")
+	RpcSDConf.FollowServiceHost = s.Key("FollowServiceHost").MustString("127.0.0.1")
+	RpcSDConf.FollowServicePort = s.Key("FollowServicePort").MustString(":50065")
+	RpcSDConf.MessageServiceHost = s.Key("MessageServiceHost").MustString("127.0.0.1")
 	RpcSDConf.MessageServicePort = s.Key("MessageServicePort").MustString(":50066")
 }
 

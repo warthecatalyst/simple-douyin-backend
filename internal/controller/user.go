@@ -2,15 +2,19 @@ package controller
 
 import (
 	"context"
+	"errors"
 	"github.com/YOJIA-yukino/simple-douyin-backend/api"
 	pbuser "github.com/YOJIA-yukino/simple-douyin-backend/api/rpc_controller_service/user"
 	initialization "github.com/YOJIA-yukino/simple-douyin-backend/init"
+	"github.com/YOJIA-yukino/simple-douyin-backend/internal/utils/constants"
 	"github.com/YOJIA-yukino/simple-douyin-backend/internal/utils/jwt"
 	"github.com/YOJIA-yukino/simple-douyin-backend/internal/utils/logger"
 	"github.com/cloudwego/hertz/pkg/app"
 	"github.com/cloudwego/hertz/pkg/protocol/consts"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/status"
 	"strconv"
 	"time"
 )
@@ -40,7 +44,7 @@ func Register(content context.Context, requestContext *app.RequestContext) {
 			},
 		})
 	}
-	address := initialization.RpcCSConf.Host + initialization.RpcCSConf.UserServicePort
+	address := initialization.RpcCSConf.UserServiceHost + initialization.RpcCSConf.UserServicePort
 	logger.GlobalLogger.Printf("address = %v", address)
 	conn, err := grpc.Dial(address, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
@@ -50,31 +54,35 @@ func Register(content context.Context, requestContext *app.RequestContext) {
 	grpcClient := pbuser.NewUserServiceInfoClient(conn)
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
-	result, err := grpcClient.UserRegister(ctx, &pbuser.UserServicePost{
+	_, err = grpcClient.UserRegister(ctx, &pbuser.UserServicePost{
 		Username: user.Username,
 		Password: user.Password,
 	})
 	if err != nil {
-		logger.GlobalLogger.Printf("Failed to remotely access UserService ,error = %v", err)
-		requestContext.JSON(consts.StatusOK, api.UserLoginResponse{
-			Response: api.Response{
-				StatusCode: int32(api.InnerConnectionErr),
-				StatusMsg:  api.ErrorCodeToMsg[api.InnerConnectionErr],
-			},
-		})
-		return
-	}
-
-	if result.BaseResp.StatusCode != 0 {
-		switch result.BaseResp.StatusCode {
-		case int32(api.UserAlreadyExistErr):
+		logger.GlobalLogger.Printf("Got error from RPC ,error = %v", err)
+		if errors.Is(status.Errorf(codes.AlreadyExists, constants.UserAlreadyExistErr.Error()), err) {
 			requestContext.JSON(consts.StatusOK, api.UserLoginResponse{
 				Response: api.Response{
 					StatusCode: int32(api.UserAlreadyExistErr),
 					StatusMsg:  api.ErrorCodeToMsg[api.UserAlreadyExistErr],
 				},
 			})
+		} else if errors.Is(status.Errorf(codes.Internal, constants.InnerDataBaseErr.Error()), err) {
+			requestContext.JSON(consts.StatusOK, api.UserLoginResponse{
+				Response: api.Response{
+					StatusCode: int32(api.InnerDataBaseErr),
+					StatusMsg:  api.ErrorCodeToMsg[api.InnerDataBaseErr],
+				},
+			})
+		} else {
+			requestContext.JSON(consts.StatusOK, api.UserLoginResponse{
+				Response: api.Response{
+					StatusCode: int32(api.InnerConnectionErr),
+					StatusMsg:  api.ErrorCodeToMsg[api.InnerConnectionErr],
+				},
+			})
 		}
+		return
 	}
 	jwt.JwtMiddleware.LoginHandler(content, requestContext)
 }
@@ -93,7 +101,7 @@ func UserInfo(content context.Context, requestContext *app.RequestContext) {
 	}
 	userIdStr := requestContext.Query("user_id")
 	userId, err := strconv.ParseInt(userIdStr, 10, 64)
-	address := initialization.RpcCSConf.Host + initialization.RpcCSConf.UserServicePort
+	address := initialization.RpcCSConf.UserServiceHost + initialization.RpcCSConf.UserServicePort
 	logger.GlobalLogger.Printf("address = %v", address)
 	conn, err := grpc.Dial(address, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {

@@ -11,6 +11,7 @@ import (
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
+	wrapperspb "google.golang.org/protobuf/types/known/wrapperspb"
 )
 
 // This is a compile-time assertion to ensure that this generated file
@@ -22,7 +23,7 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type UserDaoInfoClient interface {
-	AddUser(ctx context.Context, in *UserDaoPost, opts ...grpc.CallOption) (*BaseDaoResp, error)
+	AddUser(ctx context.Context, in *UserDaoPost, opts ...grpc.CallOption) (*wrapperspb.BoolValue, error)
 	GetUserInfoByUserName(ctx context.Context, in *UserDaoPost, opts ...grpc.CallOption) (*UserDaoInfoResp, error)
 	GetUserInfoByUserId(ctx context.Context, in *UserDaoPost, opts ...grpc.CallOption) (*UserDaoInfoResp, error)
 	GetUserInfoByUserNameAndPassword(ctx context.Context, in *UserDaoPost, opts ...grpc.CallOption) (*UserDaoInfoResp, error)
@@ -36,8 +37,8 @@ func NewUserDaoInfoClient(cc grpc.ClientConnInterface) UserDaoInfoClient {
 	return &userDaoInfoClient{cc}
 }
 
-func (c *userDaoInfoClient) AddUser(ctx context.Context, in *UserDaoPost, opts ...grpc.CallOption) (*BaseDaoResp, error) {
-	out := new(BaseDaoResp)
+func (c *userDaoInfoClient) AddUser(ctx context.Context, in *UserDaoPost, opts ...grpc.CallOption) (*wrapperspb.BoolValue, error) {
+	out := new(wrapperspb.BoolValue)
 	err := c.cc.Invoke(ctx, "/user.UserDaoInfo/addUser", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -76,7 +77,7 @@ func (c *userDaoInfoClient) GetUserInfoByUserNameAndPassword(ctx context.Context
 // All implementations must embed UnimplementedUserDaoInfoServer
 // for forward compatibility
 type UserDaoInfoServer interface {
-	AddUser(context.Context, *UserDaoPost) (*BaseDaoResp, error)
+	AddUser(context.Context, *UserDaoPost) (*wrapperspb.BoolValue, error)
 	GetUserInfoByUserName(context.Context, *UserDaoPost) (*UserDaoInfoResp, error)
 	GetUserInfoByUserId(context.Context, *UserDaoPost) (*UserDaoInfoResp, error)
 	GetUserInfoByUserNameAndPassword(context.Context, *UserDaoPost) (*UserDaoInfoResp, error)
@@ -87,7 +88,7 @@ type UserDaoInfoServer interface {
 type UnimplementedUserDaoInfoServer struct {
 }
 
-func (UnimplementedUserDaoInfoServer) AddUser(context.Context, *UserDaoPost) (*BaseDaoResp, error) {
+func (UnimplementedUserDaoInfoServer) AddUser(context.Context, *UserDaoPost) (*wrapperspb.BoolValue, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AddUser not implemented")
 }
 func (UnimplementedUserDaoInfoServer) GetUserInfoByUserName(context.Context, *UserDaoPost) (*UserDaoInfoResp, error) {

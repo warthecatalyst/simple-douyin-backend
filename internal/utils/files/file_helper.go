@@ -1,6 +1,7 @@
 package files
 
 import (
+	"bytes"
 	"errors"
 	"io"
 	"mime/multipart"
@@ -78,6 +79,27 @@ func SaveFileToLocal(savePath string, data *multipart.FileHeader) (string, error
 	timeLog := time.Now().Unix()
 	fileName := GetFileNameWithoutExt(data.Filename)
 	fileName += strconv.FormatInt(timeLog, 10) + path.Ext(data.Filename)
+	out, err := os.Create(savePath + "/" + fileName)
+	if err != nil {
+		return "", err
+	}
+	defer out.Close()
+
+	_, err = io.Copy(out, src)
+	return fileName, err
+}
+
+func SaveDataToLocal(savePath string, data *[]byte, filename string) (string, error) {
+	if exists, _ := PathExists(savePath); !exists {
+		err := os.Mkdir(savePath, os.ModePerm)
+		if err != nil {
+			return "", err
+		}
+	}
+	src := bytes.NewReader(*data)
+	timeLog := time.Now().Unix()
+	fileName := GetFileNameWithoutExt(filename)
+	fileName += strconv.FormatInt(timeLog, 10) + path.Ext(filename)
 	out, err := os.Create(savePath + "/" + fileName)
 	if err != nil {
 		return "", err

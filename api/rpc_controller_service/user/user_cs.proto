@@ -10,11 +10,6 @@ service UserServiceInfo{
   rpc getUserIdByUserName(UserServicePost) returns(UserServiceResp);
 }
 
-message BaseServiceResp{
-  int32 status_code = 1;
-  string status_msg = 2;
-}
-
 message UserServicePost{
   string username = 1;
   string password = 2;
@@ -25,7 +20,6 @@ message UserServicePost{
 message UserServiceResp{
   int64 userId = 1;
   string token = 2;
-  BaseServiceResp baseResp = 3;
 }
 
 message UserServiceInfoResp{
@@ -34,5 +28,4 @@ message UserServiceInfoResp{
   int64 FollowCnt = 3;
   int64 FollowerCnt = 4;
   bool IsFollow = 5;
-  BaseServiceResp baseResp = 6;
 }

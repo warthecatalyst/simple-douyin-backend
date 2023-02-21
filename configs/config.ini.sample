@@ -11,18 +11,18 @@ DbName     = dy_backend
 LogLevel   = info
 
 [redis]
-Host = 127.0.0.1
+UserServiceHost = 127.0.0.1
 Port = 6379
 
 [kafkaProducer]
-Host = 127.0.0.1
+UserServiceHost = 127.0.0.1
 Port = 9092
 RequireACKs = WaitForAll
 Partitioner = NewRandomPartitioner
 ReturnSuccesses = true
 
 [kafkaConsumer]
-Host = 127.0.0.1
+UserServiceHost = 127.0.0.1
 Port = 9092
 
 [feed]
@@ -49,19 +49,29 @@ FileLogWritten = false # 是否要将Log写入文件
 LogFilePath = "./logdata/logFile.txt" # 将Log写入哪一个文件
 
 [rpcCS]
-Host = 127.0.0.1
+UserServiceHost = 127.0.0.1
 UserServicePort = :50051
+VideoServiceHost = 127.0.0.1
 VideoServicePort = :50052
+FavoriteServiceHost = 127.0.0.1
 FavoriteServicePort = :50053
+CommentServiceHost = 127.0.0.1
 CommentServicePort = :50054
+FollowServiceHost = 127.0.0.1
 FollowServicePort = :50055
+MessageServiceHost = 127.0.0.1
 MessageServicePort = :50056
 
 [rpcSD]
-Host = 127.0.0.1
+UserServiceHost = 127.0.0.1
 UserServicePort = :50061
+VideoServiceHost = 127.0.0.1
 VideoServicePort = :50062
+FavoriteServiceHost = 127.0.0.1
 FavoriteServicePort = :50063
+CommentServiceHost = 127.0.0.1
 CommentServicePort = :50064
+FollowServiceHost = 127.0.0.1
 FollowServicePort = :50065
+MessageServiceHost = 127.0.0.1
 MessageServicePort = :50066
