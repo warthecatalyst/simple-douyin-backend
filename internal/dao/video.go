@@ -50,8 +50,9 @@ func (v *videoDao) AddVideo(ctx context.Context, post *pbdao.VideoDaoPost) (*wra
 	return &wrapperspb.BoolValue{Value: true}, nil
 }
 
-func (v *videoDao) GetPublishList(userInfo *pbdao.UserIdPost, videoRespStream pbdao.VideoDaoInfo_GetPublishListServer) error {
-	userId := userInfo.UserId
+// GetPublishIdList RPC远程调用获取publish的IdList
+func (v *videoDao) GetPublishIdList(in *wrapperspb.Int64Value, stream pbdao.VideoDaoInfo_GetPublishIdListServer) error {
+	userId := in.Value
 	videoInfos, err := v.GetPublishListInfo(userId)
 	if err != nil {
 		return status.Errorf(codes.Internal, err.Error())
@@ -60,19 +61,28 @@ func (v *videoDao) GetPublishList(userInfo *pbdao.UserIdPost, videoRespStream pb
 		return status.Errorf(codes.NotFound, constants.RecordNotExistErr.Error())
 	}
 	for _, video := range videoInfos {
-		if err := videoRespStream.Send(&pbdao.VideoDaoMsg{
-			VideoId:       video.VideoID,
-			VideoName:     video.VideoName,
-			UserId:        video.UserID,
-			FavoriteCount: video.FavoriteCount,
-			CommentCount:  video.CommentCount,
-			PlayURL:       video.PlayURL,
-			CoverURL:      video.CoverURL,
-		}); err != nil {
+		if err := stream.Send(&wrapperspb.Int64Value{Value: video.VideoID}); err != nil {
 			return err
 		}
 	}
 	return nil
+}
+
+func (v *videoDao) GetVideoByVideoId(ctx context.Context, in *wrapperspb.Int64Value) (*pbdao.VideoDaoMsg, error) {
+	videoId := in.Value
+	videoInfo, err := v.GetVideoByVideoIdInfo(videoId)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, err.Error())
+	}
+	return &pbdao.VideoDaoMsg{
+		VideoId:       videoId,
+		VideoName:     videoInfo.VideoName,
+		UserId:        videoInfo.UserID,
+		FavoriteCount: videoInfo.FavoriteCount,
+		CommentCount:  videoInfo.CommentCount,
+		PlayURL:       videoInfo.PlayURL,
+		CoverURL:      videoInfo.CoverURL,
+	}, status.New(codes.OK, "").Err()
 }
 
 // createVideo 在数据库中通过事务插入一条Video数据
@@ -112,8 +122,8 @@ func (v *videoDao) GetFeedList(latestTime time.Time) ([]*model.Video, error) {
 	return videoInfos, nil
 }
 
-// GetVideoByVideoId 通过VideoId查找Video
-func (v *videoDao) GetVideoByVideoId(videoId int64) (*model.Video, error) {
+// GetVideoByVideoIdInfo 通过VideoId查找Video
+func (v *videoDao) GetVideoByVideoIdInfo(videoId int64) (*model.Video, error) {
 	videoInfos := make([]*model.Video, 0)
 	if err := db.Where("video_id = ?", videoId).Find(&videoInfos).Error; err != nil {
 		if err != nil || 1 < len(videoInfos) {

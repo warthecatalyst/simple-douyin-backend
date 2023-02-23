@@ -140,7 +140,7 @@ func (UnimplementedVideoDaoInfoServer) GetPublishIdList(*wrapperspb.Int64Value, 
 	return status.Errorf(codes.Unimplemented, "method GetPublishIdList not implemented")
 }
 func (UnimplementedVideoDaoInfoServer) GetVideoByVideoId(context.Context, *wrapperspb.Int64Value) (*VideoDaoMsg, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetVideoByVideoId not implemented")
+	return nil, status.Errorf(codes.Unimplemented, "method GetVideoByVideoIdInfo not implemented")
 }
 func (UnimplementedVideoDaoInfoServer) GetVideoListByVideoIdList(VideoDaoInfo_GetVideoListByVideoIdListServer) error {
 	return status.Errorf(codes.Unimplemented, "method GetVideoListByVideoIdList not implemented")

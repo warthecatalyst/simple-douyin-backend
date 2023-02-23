@@ -135,6 +135,8 @@ func (p *videoService) PublishInfo(data *[]byte, userId, fileSize int64, title, 
 	}
 	err = p.uploadCoverToOSS(userId, saveCover, coverName)
 
+	videoId := idGenerator.GenerateVideoId()
+
 	//RPC写入数据库
 	address := initialization.RpcSDConf.VideoServiceHost + initialization.RpcSDConf.VideoServicePort
 	conn, err := grpc.Dial(address, grpc.WithTransportCredentials(insecure.NewCredentials()))
@@ -143,7 +145,6 @@ func (p *videoService) PublishInfo(data *[]byte, userId, fileSize int64, title, 
 	}
 	defer conn.Close()
 	c := pbdao.NewVideoDaoInfoClient(conn)
-	videoId := idGenerator.GenerateVideoId()
 	// 更新用户的publish list
 	// Contact the server and print out its response.
 	ctx1, cancel1 := context.WithTimeout(context.Background(), time.Second)
@@ -161,7 +162,7 @@ func (p *videoService) PublishInfo(data *[]byte, userId, fileSize int64, title, 
 // PublishListInfo service层获得用户userId所有发表过的视频
 func (p *videoService) PublishListInfo(userId, loginUserId int64) ([]api.Video, error) {
 	var err error
-	//RPC写入数据库
+	//RPC从数据库中读取
 	address := initialization.RpcSDConf.VideoServiceHost + initialization.RpcSDConf.VideoServicePort
 	conn, err := grpc.Dial(address, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
@@ -189,17 +190,66 @@ func (p *videoService) PublishListInfo(userId, loginUserId int64) ([]api.Video, 
 	}
 	go p.putPublishListInRedis(userId, videoIdList)
 	videoList := make([]*model.Video, 0)
-
+	err = p.getVideoListThroughVideoIdList(videoIdList, &videoList)
+	if err != nil {
+		return nil, err
+	}
 	apiVideos, err := getVideoListByModel(loginUserId, videoList)
 	return apiVideos, nil
 }
 
-func (p *videoService) getVideoListThroughVideoIdList(videoIdList []int64) {
+// gRPC双向通信流
+func (p *videoService) getVideoListThroughVideoIdList(videoIdList []int64, videoList *[]*model.Video) error {
+	var err error
+	address := initialization.RpcSDConf.VideoServiceHost + initialization.RpcSDConf.VideoServicePort
+	conn, err := grpc.Dial(address, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		logger.GlobalLogger.Printf("did not connect: %v", err)
+	}
+	defer conn.Close()
+	grpcClient := pbdao.NewVideoDaoInfoClient(conn)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	stream, err := grpcClient.GetVideoListByVideoIdList(ctx)
+	if err != nil {
+		return err
+	}
+	waitc := make(chan struct{})
+	go func() {
+		for {
+			videoResp, err := stream.Recv()
+			if err == io.EOF {
+				//read done
+				close(waitc)
+				return
+			}
+			if err != nil {
+				logger.GlobalLogger.Printf("error occurs In  getVideoListThroughVideoIdList, %v", err)
+			}
+			*videoList = append(*videoList, &model.Video{
+				VideoID:       videoResp.VideoId,
+				VideoName:     videoResp.VideoName,
+				UserID:        videoResp.UserId,
+				FavoriteCount: videoResp.FavoriteCount,
+				CommentCount:  videoResp.CommentCount,
+				PlayURL:       videoResp.PlayURL,
+				CoverURL:      videoResp.CoverURL,
+			})
+		}
+	}()
+
+	for _, videoId := range videoIdList {
+		if err = stream.Send(wrapperspb.Int64(videoId)); err != nil {
+			return err
+		}
+	}
+	stream.CloseSend()
+	<-waitc
+	return nil
 }
 
 func (p *videoService) updatePublishListInRedis(userId, videoId int64) {
 }
 
 func (p *videoService) putPublishListInRedis(userId int64, videoIds []int64) {
-
 }
