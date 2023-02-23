@@ -1,0 +1,44 @@
+syntax = "proto3";
+
+option go_package = "github.com/YOJIA-yukino/simple-douyin-backend/api/rpc_controller_service/favorite/route";
+
+package route;
+
+service FavoriteInfo {
+  rpc favoriteAction(FavoriteAction) returns (BaseResp);
+  rpc favoriteList(UserFavorite) returns (stream VideoResp);
+}
+
+message UserFavorite{
+  int64 loginUserId = 1;  //目前已登录的用户id
+  int64 queryUserId = 2;  //查询的用户id
+}
+
+message FavoriteAction {
+  int64 userId = 1;
+  int64 videoId = 2;
+  int32 actionType = 3;
+}
+
+message BaseResp{
+  int32 status_code = 1;
+  string status_msg = 2;
+}
+
+message UserResp{
+  int64 Id = 1;
+  string Name = 2;
+  int64 FollowCount = 3;
+  int64 FollowerCount = 4;
+  bool  isFollow = 5;
+}
+
+message VideoResp{
+  int64 Id = 1;
+  UserResp Author = 2;
+  string PlayURL = 3;
+  string CoverURL = 4;
+  int64 FavoriteCount = 5;
+  int64 CommentCount = 6;
+  bool IsFavorite = 7;
+}

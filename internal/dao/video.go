@@ -1,17 +1,23 @@
 package dao
 
 import (
-	"errors"
+	"context"
+	pbdao "github.com/YOJIA-yukino/simple-douyin-backend/api/rpc_service_dao/video"
 	initialization "github.com/YOJIA-yukino/simple-douyin-backend/init"
 	"github.com/YOJIA-yukino/simple-douyin-backend/internal/model"
 	"github.com/YOJIA-yukino/simple-douyin-backend/internal/utils/constants"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/types/known/wrapperspb"
 	"gorm.io/gorm"
 	"sync"
 	"time"
 )
 
 //videoDao 与video相关的数据库操作集合
-type videoDao struct{}
+type videoDao struct {
+	pbdao.UnimplementedVideoDaoInfoServer
+}
 
 var (
 	videoDaoInstance *videoDao
@@ -20,15 +26,57 @@ var (
 
 // GetVideoDaoInstance 获取一个VideoDao的实例
 func GetVideoDaoInstance() *videoDao {
-	dataBaseInitialization()
 	videoOnce.Do(func() {
 		videoDaoInstance = &videoDao{}
 	})
 	return videoDaoInstance
 }
 
-// CreateVideo 在数据库中通过事务插入一条Video数据
-func (v *videoDao) CreateVideo(video *model.Video) error {
+// AddVideo RPC远程调用添加一条Video信息
+func (v *videoDao) AddVideo(ctx context.Context, post *pbdao.VideoDaoPost) (*wrapperspb.BoolValue, error) {
+	video := &model.Video{
+		VideoID:       post.VideoId,
+		VideoName:     post.VideoName,
+		UserID:        post.UserId,
+		FavoriteCount: 0,
+		CommentCount:  0,
+		PlayURL:       post.PlayURL,
+		CoverURL:      post.CoverURL,
+	}
+	err := v.createVideo(video)
+	if err != nil {
+		return &wrapperspb.BoolValue{Value: false}, status.Errorf(codes.Internal, constants.InnerDataBaseErr.Error())
+	}
+	return &wrapperspb.BoolValue{Value: true}, nil
+}
+
+func (v *videoDao) GetPublishList(userInfo *pbdao.UserIdPost, videoRespStream pbdao.VideoDaoInfo_GetPublishListServer) error {
+	userId := userInfo.UserId
+	videoInfos, err := v.GetPublishListInfo(userId)
+	if err != nil {
+		return status.Errorf(codes.Internal, err.Error())
+	}
+	if len(videoInfos) == 0 {
+		return status.Errorf(codes.NotFound, constants.RecordNotExistErr.Error())
+	}
+	for _, video := range videoInfos {
+		if err := videoRespStream.Send(&pbdao.VideoDaoMsg{
+			VideoId:       video.VideoID,
+			VideoName:     video.VideoName,
+			UserId:        video.UserID,
+			FavoriteCount: video.FavoriteCount,
+			CommentCount:  video.CommentCount,
+			PlayURL:       video.PlayURL,
+			CoverURL:      video.CoverURL,
+		}); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// createVideo 在数据库中通过事务插入一条Video数据
+func (v *videoDao) createVideo(video *model.Video) error {
 	return db.Transaction(func(tx *gorm.DB) error {
 		// 在事务中执行一些 db 操作（从这里开始，您应该使用 'tx' 而不是 'db'）
 		if err := tx.Create(video).Error; err != nil {
@@ -40,15 +88,11 @@ func (v *videoDao) CreateVideo(video *model.Video) error {
 	})
 }
 
-// GetPublishList 在数据库中获得该user发表过的所有的视频
-func (v *videoDao) GetPublishList(userId int64) ([]*model.Video, error) {
+// GetPublishListInfo 在数据库中获得该user发表过的所有的视频
+func (v *videoDao) GetPublishListInfo(userId int64) ([]*model.Video, error) {
 	videoInfos := make([]*model.Video, 0)
 	if err := db.Where("user_id = ?", userId).Find(&videoInfos).Error; err != nil {
-		if errors.Is(gorm.ErrRecordNotFound, err) {
-			return nil, constants.RecordNotExistErr
-		} else {
-			return nil, constants.InnerDataBaseErr
-		}
+		return nil, constants.InnerDataBaseErr
 	}
 	return videoInfos, nil
 }

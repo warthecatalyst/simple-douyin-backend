@@ -1,0 +1,34 @@
+syntax = "proto3";
+
+import "google/protobuf/wrappers.proto";
+option go_package = "github.com/YOJIA-yukino/simple-douyin-backend/api/rpc_controller_service/user";
+
+package user;
+
+service VideoDaoInfo{
+  rpc addVideo(VideoDaoPost) returns(google.protobuf.BoolValue);
+  rpc getPublishIdList(google.protobuf.Int64Value) returns(stream google.protobuf.Int64Value);
+  rpc getVideoByVideoId(google.protobuf.Int64Value) returns(VideoDaoMsg);
+  rpc getVideoListByVideoIdList(stream google.protobuf.Int64Value) returns(stream VideoDaoMsg);
+}
+
+message TimePost{
+}
+
+message VideoDaoMsg{
+  int64 videoId = 1;
+  string videoName = 2;
+  int64 userId = 3;
+  int32 FavoriteCount = 4;
+  int32 CommentCount = 5;
+  string playURL = 6;
+  string coverURL = 7;
+}
+
+message VideoDaoPost{
+  int64 videoId = 1;
+  int64 userId = 2;
+  string videoName = 3;
+  string playURL = 4;
+  string coverURL = 5;
+}

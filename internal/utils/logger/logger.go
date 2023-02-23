@@ -21,7 +21,8 @@ func InitLogger(config initialization.LogConfig) {
 			file, err = os.Create(config.LogFilePath)
 		}
 		if err != nil {
-			panic(err)
+			GlobalLogger = initialization.GetStdOutLogger()
+			GlobalLogger.Error().Msg("Get Logger failed")
 		}
 		GlobalLogger = zerolog.New(file)
 	} else {

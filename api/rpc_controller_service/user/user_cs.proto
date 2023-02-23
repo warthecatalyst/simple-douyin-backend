@@ -1,0 +1,31 @@
+syntax = "proto3";
+
+option go_package = "github.com/YOJIA-yukino/simple-douyin-backend/api/rpc_controller_service/user";
+
+package user;
+
+service UserServiceInfo{
+  rpc userRegister(UserServicePost) returns(UserServiceResp);
+  rpc getUserInfo(UserServicePost) returns(UserServiceInfoResp);
+  rpc getUserIdByUserName(UserServicePost) returns(UserServiceResp);
+}
+
+message UserServicePost{
+  string username = 1;
+  string password = 2;
+  int64  queryUserId = 3;
+  int64  loginUserId = 4;
+}
+
+message UserServiceResp{
+  int64 userId = 1;
+  string token = 2;
+}
+
+message UserServiceInfoResp{
+  int64 Id = 1;
+  string Name = 2;
+  int64 FollowCnt = 3;
+  int64 FollowerCnt = 4;
+  bool IsFollow = 5;
+}

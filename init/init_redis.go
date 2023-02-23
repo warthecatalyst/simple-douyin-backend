@@ -9,7 +9,7 @@ var rdb *redis.Client
 
 func InitRDB() {
 	rdb = redis.NewClient(&redis.Options{
-		Addr:     fmt.Sprintf("%s:%s", RdbHost, RdbPort),
+		Addr:     fmt.Sprintf("%s:%s", rdbHost, rdbPort),
 		Password: "",
 		DB:       0,
 		PoolSize: 100,

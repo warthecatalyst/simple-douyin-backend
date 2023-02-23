@@ -17,6 +17,8 @@ var (
 )
 
 func GetFeedServiceInstance() *feedService {
+	initRedis()
+	initKafka()
 	feedOnce.Do(func() {
 		feedServiceInstance = &feedService{}
 	})
@@ -35,9 +37,9 @@ func (f *feedService) Feed(userId int64, latestTime time.Time) (int64, []api.Vid
 		logger.GlobalLogger.Printf("没有早于当前时间的视频")
 		return -1, nil, constants.NoVideoErr
 	}
-	videoList, err := newVideoList(userId, videos)
+	videoList, err := getVideoListByModel(userId, videos)
 	if err != nil {
 		return -1, nil, err
 	}
-	return videos[len(videos)-1].CreatedAt.Unix(), videoList, nil
+	return videos[len(videos)-1].CreatedAt.UnixMilli(), videoList, nil
 }

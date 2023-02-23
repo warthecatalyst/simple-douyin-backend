@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+import "google/protobuf/wrappers.proto";
+option go_package = "github.com/YOJIA-yukino/simple-douyin-backend/api/rpc_service_dao/user";
+
+package user;
+
+service UserDaoInfo{
+  rpc addUser(UserDaoPost) returns(google.protobuf.BoolValue);
+  rpc getUserInfoByUserName(UserDaoPost) returns(UserDaoInfoResp);
+  rpc getUserInfoByUserId(UserDaoPost) returns(UserDaoInfoResp);
+  rpc getUserInfoByUserNameAndPassword(UserDaoPost) returns(UserDaoInfoResp);
+}
+
+message UserDaoPost{
+  string username = 1;
+  string password = 2;
+  int64 userId = 3;
+}
+
+message UserDaoInfoResp{
+  int64 Id = 1;
+  string Name = 2;
+  string password = 3;
+  int64 FollowCnt = 4;
+  int64 FollowerCnt = 5;
+}

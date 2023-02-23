@@ -36,7 +36,7 @@ func FavoriteAction(c context.Context, ctx *app.RequestContext) {
 		})
 		return
 	}
-	err = service.GetFavoriteServiceInstance().FavoriteInfo(loginUserId, videoId, int(actionType))
+	err = service.GetFavoriteServiceInstance().FavoriteInfo(loginUserId, videoId, int32(actionType))
 	if err != nil {
 		if errors.Is(constants.RecordNotExistErr, err) {
 			ctx.JSON(consts.StatusOK, api.Response{

@@ -1,6 +1,9 @@
 # If you prefer the allow list template instead of the deny list, see community template:
 # https://github.com/github/gitignore/blob/main/community/Golang/Go.AllowList.gitignore
 #
+# not ignoring
+!/third_party/*
+
 # Binaries for programs and plugins
 *.exe
 *.exe~
@@ -8,7 +11,7 @@
 *.so
 *.dylib
 
-# Test binary, built with `go test -c`
+# Test binary, built with `go test -requestContext`
 *.test
 
 # Output of the go coverage tool, specifically when used with LiteIDE
@@ -22,8 +25,10 @@ go.work
 
 .idea
 .vscode
+.run
 
 # More for security concerns
 configs/config.ini
 userdata
 logdata
+

@@ -1,0 +1,42 @@
+syntax = "proto3";
+
+import "google/protobuf/wrappers.proto";
+option go_package = "github.com/YOJIA-yukino/simple-douyin-backend/api/rpc_controller_service/video";
+
+package video;
+
+service VideoServiceInfo{
+  rpc publishVideoInfo(VideoServicePost) returns(google.protobuf.BoolValue);
+  rpc getPublishListInfo(UserPost) returns(stream VideoServiceResp);
+}
+
+message VideoServicePost{
+  int64 userId = 1;
+  string title = 2;
+  string fileName = 3;
+  int64 fileSize = 4;
+  bytes Content = 5;
+}
+
+message UserPost{
+  int64 loginUserId = 1;
+  int64 queryUserId = 2;
+}
+
+message UserServiceResp{
+  int64 Id = 1;
+  string Name = 2;
+  int64 FollowCnt = 3;
+  int64 FollowerCnt = 4;
+  bool IsFollow = 5;
+}
+
+message VideoServiceResp{
+  UserServiceResp userResp = 1;
+  int64 VideoId = 2;
+  int64 FavoriteCount = 3;
+  int64 CommentCount = 4;
+  string PlayURL = 5;
+  string CoverURL = 6;
+  bool IsFavorite = 7;
+}

@@ -8,12 +8,10 @@ import (
 
 // InitRouter 初始化hertz服务器路由
 func InitRouter(hertz *server.Hertz) {
-	// public directory is used to serve static resources
-	hertz.Static("/static", "./public")
 
 	// 用户注册与登录需要进行鉴权, Feed可授权可不授权
-	hertz.POST("/douyin/user/register", controller.Register)
-	hertz.POST("/douyin/user/login", jwt.JwtMiddleware.LoginHandler)
+	hertz.POST("/douyin/user/register/", controller.Register)
+	hertz.POST("/douyin/user/login/", jwt.JwtMiddleware.LoginHandler)
 	hertz.GET("/douyin/feed/", controller.Feed)
 
 	// 鉴权authorization
