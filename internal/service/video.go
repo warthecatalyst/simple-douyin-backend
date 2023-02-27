@@ -40,7 +40,7 @@ func getVideoListByID(userId int64, videoIds []string) ([]api.Video, error) {
 	videoList := make([]api.Video, len(videoIds))
 	for i, videoIdstr := range videoIds {
 		videoId, _ := strconv.ParseInt(videoIdstr, 10, 64)
-		videoInfo, err := dao.GetVideoDaoInstance().GetVideoByVideoId(videoId)
+		videoInfo, err := dao.GetVideoDaoInstance().GetVideoByVideoIdInfo(videoId)
 		userInfo, err := GetUserServiceInstance().getUserByUserId(userId)
 		isFavor, err := dao.GetFavoriteDaoInstance().CheckFavorite(userId, videoId)
 		if err != nil {

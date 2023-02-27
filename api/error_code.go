@@ -47,8 +47,8 @@ var ErrorCodeToMsg = map[ErrorType]string{
 	UserNotExistErr:       "用户名或密码错误",
 	UserAlreadyExistErr:   "用户名已存在",
 	UserIdNotMatchErr:     "Not match userId",
-	RecordNotExistErr:     "Record does not exist",
-	RecordAlreadyExistErr: "Record already exists",
+	RecordNotExistErr:     "数据不存在",
+	RecordAlreadyExistErr: "数据已存在",
 	RecordNotMatchErr:     "Record doesn't match",
 
 	LogicErr:            "Inner logic error",

@@ -2,7 +2,7 @@
 # https://github.com/github/gitignore/blob/main/community/Golang/Go.AllowList.gitignore
 #
 # not ignoring
-!/third_party/*
+!/third_party/ffmpeg/*
 
 # Binaries for programs and plugins
 *.exe

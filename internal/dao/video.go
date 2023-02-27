@@ -2,6 +2,7 @@ package dao
 
 import (
 	"context"
+	"errors"
 	pbdao "github.com/YOJIA-yukino/simple-douyin-backend/api/rpc_service_dao/video"
 	initialization "github.com/YOJIA-yukino/simple-douyin-backend/init"
 	"github.com/YOJIA-yukino/simple-douyin-backend/internal/model"
@@ -10,6 +11,7 @@ import (
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/wrapperspb"
 	"gorm.io/gorm"
+	"io"
 	"sync"
 	"time"
 )
@@ -68,6 +70,7 @@ func (v *videoDao) GetPublishIdList(in *wrapperspb.Int64Value, stream pbdao.Vide
 	return nil
 }
 
+// GetVideoByVideoId RPC通过Video获得VideoId
 func (v *videoDao) GetVideoByVideoId(ctx context.Context, in *wrapperspb.Int64Value) (*pbdao.VideoDaoMsg, error) {
 	videoId := in.Value
 	videoInfo, err := v.GetVideoByVideoIdInfo(videoId)
@@ -83,6 +86,36 @@ func (v *videoDao) GetVideoByVideoId(ctx context.Context, in *wrapperspb.Int64Va
 		PlayURL:       videoInfo.PlayURL,
 		CoverURL:      videoInfo.CoverURL,
 	}, status.New(codes.OK, "").Err()
+}
+
+// GetVideoListByVideoIdList 通过VideoIdList获取VideoList
+func (v *videoDao) GetVideoListByVideoIdList(stream pbdao.VideoDaoInfo_GetVideoListByVideoIdListServer) error {
+	for {
+		in, err := stream.Recv()
+		if err == io.EOF {
+			return nil
+		}
+		videoId := in.Value
+		videoInfo, err := v.GetVideoByVideoIdInfo(videoId)
+		if err != nil {
+			if errors.Is(constants.RecordNotExistErr, err) {
+				return status.Errorf(codes.NotFound, err.Error())
+			} else {
+				return status.Errorf(codes.Internal, err.Error())
+			}
+		}
+		if err = stream.Send(&pbdao.VideoDaoMsg{
+			VideoId:       videoId,
+			VideoName:     videoInfo.VideoName,
+			UserId:        videoInfo.UserID,
+			FavoriteCount: videoInfo.FavoriteCount,
+			CommentCount:  videoInfo.CommentCount,
+			PlayURL:       videoInfo.PlayURL,
+			CoverURL:      videoInfo.CoverURL,
+		}); err != nil {
+			return err
+		}
+	}
 }
 
 // createVideo 在数据库中通过事务插入一条Video数据
