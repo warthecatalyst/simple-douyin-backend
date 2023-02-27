@@ -95,7 +95,8 @@
 从大方向上，视频点赞、用户关注等需要能够及时响应，操作流畅，因此需要尽可能地降低耗时。而用户的基本信息、
 视频的基本信息、评论与消息的内容需要进行持久化存储。
 
-### 3.2 项目目录结构
+### 3.2 项目结构
+#### 3.2.1 项目目录架构
 项目的目录结构采用了[golang-standards/project-layout](https://github.com/golang-standards/project-layout)
 中所推荐的项目目录结构，方便项目的后续迭代与开发。每个目录下都有对应的package_info文件用于介绍该目录的
 作用。
@@ -104,6 +105,12 @@
 用于处理用户的API输入并调用Service层微服务；项目的service层拥有不同的领域(一个领域对应一个微服务)
 ，领域之间的信息通过RPC同步通信或消息异步通信的方式传递信息；
 项目的Dao层用于操作数据库，使用ORM模型一定程度上防止SQL注入。
+
+#### 3.2.2 项目DDD架构设计
+![img.png](/docs/images/structure.png)
+- 需求上业务功能相对独立，所以整体架构采用了基于DDD思想设计的微服务架构，具体架构图如上图所示，一共可以分为5个微服务模块，使用etcd进行微服务的注册和发现。
+- APP的请求会先经过Nginx进行限流策略处理，防止恶意的刷接口，然后转发请求到GateWay里面，在用户接口层对请求进行JWT鉴权和参数校验，然后分发到应用层进行业务逻辑，并对返回进行DTO的封装。
+- 应用层的作用是在这一层中主要是调用rpc请求发给对应的领域层微服务，并按照需要进行组装，在图中用不同颜色的箭头表示不同的业务需要的领域层微服务。
 
 ### 3.3 技术选型
 - **主框架**
@@ -177,7 +184,7 @@ CREATE TABLE `tablename` (
   `created_at` timestamp NULL DEFAULT NULL COMMENT '创建时间',
   `updated_at` timestamp NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   `deleted_at` timestamp NULL DEFAULT NULL COMMENT '删除时间，用于软删除',
-  PRIMARY KEY (`id`),
+  PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='表用途';
 ```
 以上字段是每张表必须的，将id设为主键，字段的默认值和注释必须填写。
