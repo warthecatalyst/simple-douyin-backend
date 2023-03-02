@@ -2,7 +2,7 @@ package service
 
 import (
 	initialization "github.com/YOJIA-yukino/simple-douyin-backend/init"
-	"github.com/go-redis/redis"
+	"github.com/go-redis/redis/v8"
 	"math/rand"
 	"sync"
 	"time"

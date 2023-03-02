@@ -112,7 +112,7 @@ func (f *favoriteDao) GetFavoriteList(userId int64) ([]*model.Video, error) {
 	n := len(favors)
 	videos := make([]*model.Video, n)
 	for i, fav := range favors {
-		videos[i], err = GetVideoDaoInstance().GetVideoByVideoId(fav.VideoID)
+		videos[i], err = GetVideoDaoInstance().GetVideoByVideoIdInfo(fav.VideoID)
 		if err != nil {
 			return nil, err
 		}

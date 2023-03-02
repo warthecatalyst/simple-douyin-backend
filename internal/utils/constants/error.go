@@ -26,4 +26,7 @@ var (
 	VideoSizeErr   = errors.New(api.ErrorCodeToMsg[api.VideoSizeErr])
 	SavingFailErr  = errors.New(api.ErrorCodeToMsg[api.SavingFailErr])
 	UploadFailErr  = errors.New(api.ErrorCodeToMsg[api.UploadFailErr])
+	
+	LockFailedErr = errors.New("lock Failed")
+	TimeOutErr    = errors.New("timeout Error")
 )

@@ -175,7 +175,7 @@ func (f *favoriteService) writeToKafkaAsyn(userId, videoId int64, actionType int
 func (f *favoriteService) writeToRedis(userId, videoId int64, actionType int32) error {
 	//判断redis中是否存在
 	videoKey := videoFavoritePrefix + strconv.FormatInt(videoId, 10)
-	exists, err := redisClient.Exists(videoKey).Result()
+	exists, err := redisClient.Exists(context.Background(), videoKey).Result()
 	if err != nil {
 		return constants.RedisDBErr
 	}
@@ -185,7 +185,7 @@ func (f *favoriteService) writeToRedis(userId, videoId int64, actionType int32) 
 		favoriteCount, err := dao.GetFavoriteDaoInstance().GetFavoriteCount(videoId)
 		if err != nil && errors.Is(constants.RecordNotExistErr, err) {
 			//放入空缓存
-			err = redisClient.Set(videoKey, emptyCache, getEmptyCacheExpireTime()).Err()
+			err = redisClient.Set(context.Background(), videoKey, emptyCache, getEmptyCacheExpireTime()).Err()
 			if err != nil {
 				return constants.RedisDBErr
 			}
@@ -197,27 +197,27 @@ func (f *favoriteService) writeToRedis(userId, videoId int64, actionType int32) 
 		} else if actionType == api.UnFavoriteAction {
 			favoriteCount--
 		}
-		err = redisClient.Set(videoKey, strconv.Itoa(int(favoriteCount)), getVideoFavoriteExpireTime()).Err()
+		err = redisClient.Set(context.Background(), videoKey, strconv.Itoa(int(favoriteCount)), getVideoFavoriteExpireTime()).Err()
 		if err != nil {
 			return constants.RedisDBErr
 		}
 	} else {
-		redisClient.Expire(videoKey, videoFavoriteExpireTime)
-		if emptyCache == redisClient.Get(videoKey).Val() {
+		redisClient.Expire(context.Background(), videoKey, videoFavoriteExpireTime)
+		if emptyCache == redisClient.Get(context.Background(), videoKey).Val() {
 			//直接返回
 			return nil
 		}
 		if actionType == api.FavoriteAction {
-			err = redisClient.Incr(videoKey).Err()
+			err = redisClient.Incr(context.Background(), videoKey).Err()
 		} else if actionType == api.UnFavoriteAction {
-			err = redisClient.Decr(videoKey).Err()
+			err = redisClient.Decr(context.Background(), videoKey).Err()
 		}
 		if err != nil {
 			return constants.RedisDBErr
 		}
 	}
 	userKey := userFavoritePrefix + strconv.FormatInt(userId, 10)
-	exists, err = redisClient.Exists(userKey).Result()
+	exists, err = redisClient.Exists(context.Background(), userKey).Result()
 	if err != nil {
 		return constants.RedisDBErr
 	}
@@ -228,11 +228,11 @@ func (f *favoriteService) writeToRedis(userId, videoId int64, actionType int32) 
 			videos, err = dao.GetFavoriteDaoInstance().GetFavoriteList(userId)
 		}
 		for _, video := range videos {
-			redisClient.LPush(userKey, video.VideoID)
+			redisClient.LPush(context.Background(), userKey, video.VideoID)
 		}
 	}
-	redisClient.LPush(userKey, videoId)
-	redisClient.Expire(userKey, getUserFavoriteExpireTime())
+	redisClient.LPush(context.Background(), userKey, videoId)
+	redisClient.Expire(context.Background(), userKey, getUserFavoriteExpireTime())
 	return nil
 }
 
@@ -243,7 +243,7 @@ func (f *favoriteService) FavoriteListInfo(loginUserId, userId int64) (*[]api.Vi
 		return nil, err
 	}
 	userKey := userFavoritePrefix + strconv.FormatInt(userId, 10)
-	exists, err := redisClient.Exists(userKey).Result()
+	exists, err := redisClient.Exists(context.Background(), userKey).Result()
 	if err != nil {
 		return nil, constants.RedisDBErr
 	}
@@ -254,10 +254,10 @@ func (f *favoriteService) FavoriteListInfo(loginUserId, userId int64) (*[]api.Vi
 			videos, err = dao.GetFavoriteDaoInstance().GetFavoriteList(userId)
 		}
 		for _, video := range videos {
-			redisClient.LPush(userKey, video.VideoID)
+			redisClient.LPush(context.Background(), userKey, video.VideoID)
 		}
 	}
-	videoIds, err := redisClient.LRange(userKey, 0, -1).Result()
+	videoIds, err := redisClient.LRange(context.Background(), userKey, 0, -1).Result()
 	if err != nil {
 		return nil, err
 	}
@@ -275,7 +275,7 @@ func (f *favoriteService) DeleteDatabaseRegularly() error {
 func (f *favoriteService) WriteToDataBaseRegularly() error {
 	for key, _ := range f.videoKeySet {
 		logger.GlobalLogger.Printf("key = %v", key)
-		val, err := redisClient.Get(key).Result()
+		val, err := redisClient.Get(context.Background(), key).Result()
 		if err != nil {
 			return constants.RedisDBErr
 		}
